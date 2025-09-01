@@ -1,7 +1,7 @@
 const { createClient } = require('@sanity/client');
 
 const client = createClient({
-  projectId: 'tq1qdk3m',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2023-05-03'

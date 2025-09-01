@@ -11,9 +11,9 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity write client
 const writeClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'your-project-id',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  token: process.env.SANITY_API_TOKEN || 'your-token',
+  token: process.env.SANITY_API_TOKEN || 'skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n',
   useCdn: false,
   apiVersion: '2023-01-01',
 });

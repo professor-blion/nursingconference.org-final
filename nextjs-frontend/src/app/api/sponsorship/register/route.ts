@@ -3,7 +3,7 @@ import { createClient } from '@sanity/client';
 import { generateRegistrationId } from '../../../getSponsorshipData';
 
 const client = createClient({
-  projectId: 'tq1qdk3m',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2023-05-03',

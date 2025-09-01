@@ -11,7 +11,7 @@ async function diagnoseSanityDataIssues() {
     
     // Test Sanity client configuration
     console.log('📋 Environment Configuration:');
-    console.log(`   Project ID: ${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3'}`);
+    console.log(`   Project ID: ${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho'}`);
     console.log(`   Dataset: ${process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'}`);
     console.log(`   API Version: ${process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-05-03'}`);
     console.log(`   API Token: ${process.env.SANITY_API_TOKEN ? 'Present' : 'Missing'}\n`);

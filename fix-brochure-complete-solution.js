@@ -5,7 +5,7 @@ const client = createClient({
   projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
-  token: 'skcr4aPHPIYzjJ7NNTdIkI9uxSjcOYLwV53fRkJAgW65cTOYxGlOFh01cyzEKPNbj5P0tTCJmgBh0WOqkY9YDcTglklLQzuurFTvLbZ4Q9oRQBd7DqFX7m1WMGRyFhUP6QRqEHSA9ROVDlXx63i2kIqZ6u00eOMbzjNyNCB5Ek6iVtfdNYgk',
+  token: 'skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n',
   apiVersion: '2023-05-03'
 });
 

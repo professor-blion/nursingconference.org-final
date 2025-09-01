@@ -51,7 +51,7 @@ Visit: `http://localhost:3000/api/health`
 ## Configuration Details
 
 ### Sanity Configuration
-- **Project ID**: `n3no08m3`
+- **Project ID**: `fl5uetho`
 - **Dataset**: `production`
 - **API Version**: `2023-05-03`
 - **Studio Port**: `3333`
