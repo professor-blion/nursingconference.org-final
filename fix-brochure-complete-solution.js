@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client with current credentials
 const client = createClient({
-  projectId: 'sqpmeuqp',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   token: 'skcr4aPHPIYzjJ7NNTdIkI9uxSjcOYLwV53fRkJAgW65cTOYxGlOFh01cyzEKPNbj5P0tTCJmgBh0WOqkY9YDcTglklLQzuurFTvLbZ4Q9oRQBd7DqFX7m1WMGRyFhUP6QRqEHSA9ROVDlXx63i2kIqZ6u00eOMbzjNyNCB5Ek6iVtfdNYgk',
@@ -116,7 +116,7 @@ async function fixBrochureCompleteSolution() {
       console.log('   This happens at line 133-137 in /api/brochure/submit/route.ts');
       
       console.log('\n🔧 IMMEDIATE SOLUTION REQUIRED:');
-      console.log('1. Go to: https://diabetesconference-final.sanity.studio/');
+      console.log('1. Go to: https://nursing-conference-final-cms.sanity.studio/');
       console.log('2. Login with your Sanity credentials');
       console.log('3. Find "Brochure Settings" in the left sidebar');
       console.log('4. Click on the brochure settings document');
@@ -198,7 +198,7 @@ async function fixBrochureCompleteSolution() {
 
     // 7. Configuration verification
     console.log('\n7️⃣ CONFIGURATION VERIFICATION');
-    console.log('✅ Project ID: sqpmeuqp');
+    console.log('✅ Project ID: fl5uetho');
     console.log('✅ Dataset: production');
     console.log('✅ API Version: 2023-05-03');
     console.log('✅ API Token: Configured');
@@ -209,7 +209,7 @@ async function fixBrochureCompleteSolution() {
     console.error('\n❌ ERROR:', error.message);
     console.error('\n🔧 TROUBLESHOOTING:');
     console.error('1. Check internet connection');
-    console.error('2. Verify Sanity project ID: sqpmeuqp');
+    console.error('2. Verify Sanity project ID: fl5uetho');
     console.error('3. Verify API token is correct');
     console.error('4. Check if Sanity Studio is accessible');
   }

@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client with current credentials
 const client = createClient({
-  projectId: 'sqpmeuqp',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   token: 'skcr4aPHPIYzjJ7NNTdIkI9uxSjcOYLwV53fRkJAgW65cTOYxGlOFh01cyzEKPNbj5P0tTCJmgBh0WOqkY9YDcTglklLQzuurFTvLbZ4Q9oRQBd7DqFX7m1WMGRyFhUP6QRqEHSA9ROVDlXx63i2kIqZ6u00eOMbzjNyNCB5Ek6iVtfdNYgk',

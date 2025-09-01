@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client with current credentials
 const client = createClient({
-  projectId: 'sqpmeuqp',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   token: 'skcr4aPHPIYzjJ7NNTdIkI9uxSjcOYLwV53fRkJAgW65cTOYxGlOFh01cyzEKPNbj5P0tTCJmgBh0WOqkY9YDcTglklLQzuurFTvLbZ4Q9oRQBd7DqFX7m1WMGRyFhUP6QRqEHSA9ROVDlXx63i2kIqZ6u00eOMbzjNyNCB5Ek6iVtfdNYgk',
@@ -216,7 +216,7 @@ async function comprehensiveBrochureDiagnosis() {
       console.log('   API returns "Brochure file is not available" (line 135 in submit route)');
       
       console.log('\n🔧 IMMEDIATE SOLUTION:');
-      console.log('1. Go to: https://diabetesconference-final.sanity.studio/');
+      console.log('1. Go to: https://nursing-conference-final-cms.sanity.studio/');
       console.log('2. Find "Brochure Settings" in sidebar');
       console.log('3. Upload PDF file in "PDF Brochure File" field');
       console.log('4. Click "Publish" to save');
