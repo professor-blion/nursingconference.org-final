@@ -7,7 +7,7 @@ async function checkSanityAuth() {
   // Test 1: Read-only access (should work)
   console.log('📖 Testing READ access...');
   const readClient = createClient({
-    projectId: 'tq1qdk3m',
+    projectId: 'fl5uetho',
     dataset: 'production',
     useCdn: false,
     apiVersion: '2023-05-03',
@@ -36,7 +36,7 @@ async function checkSanityAuth() {
     console.log('✅ SANITY_API_TOKEN found in environment');
     
     const writeClient = createClient({
-      projectId: 'tq1qdk3m',
+      projectId: 'fl5uetho',
       dataset: 'production',
       useCdn: false,
       apiVersion: '2023-05-03',
@@ -60,7 +60,7 @@ async function checkSanityAuth() {
   console.log('4. If still not working, you may need to generate an API token');
   console.log('\n📋 To generate an API token:');
   console.log('1. Go to https://sanity.io/manage');
-  console.log('2. Select your project (tq1qdk3m)');
+  console.log('2. Select your project (fl5uetho)');
   console.log('3. Go to API tab');
   console.log('4. Create a new token with Editor permissions');
   console.log('5. Add it to your .env.local file as SANITY_API_TOKEN=your_token_here');

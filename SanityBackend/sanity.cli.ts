@@ -2,7 +2,7 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: 'n3no08m3',
+    projectId: 'fl5uetho',
     dataset: 'production'
   },
   studioHost: 'nursing-conferences-cms',

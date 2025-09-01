@@ -19,7 +19,7 @@ NEXT_PUBLIC_BASE_URL=https://your-domain.com
 
 ```bash
 # Sanity Project Configuration
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-05-03
 
@@ -83,7 +83,7 @@ NEXT_PUBLIC_SENTRY_DSN=your_public_sentry_dsn_here
 
 ### **1. Sanity API Token**
 1. Go to [Sanity Management Console](https://www.sanity.io/manage)
-2. Select your project (`n3no08m3`)
+2. Select your project (`fl5uetho`)
 3. Go to **API** → **Tokens**
 4. Create a new token with **Editor** permissions
 5. Copy the token value
@@ -113,7 +113,7 @@ NEXT_PUBLIC_SENTRY_DSN=your_public_sentry_dsn_here
 ### **Step 2: Required Variables (Minimum)**
 ```bash
 NODE_ENV=production
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 SANITY_API_TOKEN=your_token_here
 NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id

@@ -97,7 +97,7 @@ async function verifyCoolifyEnvironment() {
     console.log('-'.repeat(50));
     
     const sanityVars = [
-      { name: 'NEXT_PUBLIC_SANITY_PROJECT_ID', required: true, expected: 'n3no08m3' },
+      { name: 'NEXT_PUBLIC_SANITY_PROJECT_ID', required: true, expected: 'fl5uetho' },
       { name: 'NEXT_PUBLIC_SANITY_DATASET', required: true, expected: 'production' },
       { name: 'NEXT_PUBLIC_SANITY_API_VERSION', required: false, expected: '2023-05-03' },
       { name: 'SANITY_API_TOKEN', required: true, sensitive: true }

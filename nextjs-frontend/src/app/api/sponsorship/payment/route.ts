@@ -4,7 +4,7 @@ import { generateInvoiceNumber } from '../../../getSponsorshipData';
 import { sendInvoiceEmail, sendPaymentConfirmationEmail, sendSponsorshipNotification, type SponsorshipNotificationData } from '../../../lib/emailService';
 
 const client = createClient({
-  projectId: 'tq1qdk3m',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2023-05-03',

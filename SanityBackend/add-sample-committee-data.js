@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client
 const client = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   token: 'your-token', // Replace with your actual token - get from sanity.io/manage

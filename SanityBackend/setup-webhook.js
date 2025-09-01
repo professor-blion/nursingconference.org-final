@@ -4,7 +4,7 @@ const { createClient } = require('@sanity/client');
 // Run this once to configure the webhook
 
 const client = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2023-05-03',

@@ -35,7 +35,7 @@ The complete payment receipt system has been successfully implemented, tested, a
 - **Status**: ✅ Verified and working
 
 ### **✅ Sanity Backend Configuration**
-- **Project ID**: n3no08m3
+- **Project ID**: fl5uetho
 - **Dataset**: production
 - **API Version**: 2023-05-03
 - **Write Token**: ✅ Configured

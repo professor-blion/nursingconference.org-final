@@ -5,7 +5,7 @@ import { createClient } from '@sanity/client'
 const projectId =
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
   process.env.SANITY_PROJECT_ID ||
-  'n3no08m3'
+  'fl5uetho'
 const dataset =
   process.env.NEXT_PUBLIC_SANITY_DATASET ||
   process.env.SANITY_DATASET ||
