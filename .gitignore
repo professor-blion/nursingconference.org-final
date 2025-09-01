@@ -259,3 +259,33 @@ SanityBackend/.sanity/
 nextjs-frontend/.next/
 nextjs-frontend/out/
 nextjs-frontend/build/
+
+# Sanity data exports and assets (images will be served from Sanity backend)
+SanityBackend/export-folder/
+SanityBackend/exports/
+*.ndjson
+*.tar.gz
+*-data.ndjson
+*-with-assets.tar.gz
+
+# Image and media files (served from Sanity CDN)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.svg
+*.ico
+*.pdf
+*.mp4
+*.mov
+*.avi
+*.mp3
+*.wav
+
+# Import scripts (contain sensitive data paths)
+import-content-only.js
+import-using-sanity-cli.js
+
+# Large npm packages
+npm.tgz
