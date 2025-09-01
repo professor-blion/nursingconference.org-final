@@ -39,7 +39,7 @@ export default defineConfig({
       'http://127.0.0.1:3334',
       'https://127.0.0.1:3334',
       'https://nursingeducationconferences.org',
-      'https://nursing-conferences-cms.sanity.studio'
+      'https://nursing-conference-final-cms.sanity.studio'
     ],
     credentials: true,
   },

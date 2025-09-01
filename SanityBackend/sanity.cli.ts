@@ -5,7 +5,7 @@ export default defineCliConfig({
     projectId: 'fl5uetho',
     dataset: 'production'
   },
-  studioHost: 'nursing-conferences-cms',
+  studioHost: 'nursing-conference-final-cms',
   /**
    * Enable auto-updates for studios.
    * Learn more at https://www.sanity.io/docs/cli#auto-updates
