@@ -31,7 +31,7 @@ async function getBrochureSettings() {
     // Import Sanity client directly to fetch brochure settings
     const { client } = await import('../sanity/client');
 
-    const query = `*[_type == "brochureSettings"][0] {
+    const query = `*[_type == "brochureSettings" && _id == "brochureSettings"][0] {
       title,
       description,
       heroBackgroundImage {

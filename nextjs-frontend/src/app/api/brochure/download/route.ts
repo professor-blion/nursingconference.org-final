@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     console.log('📄 Processing brochure download request...');
     console.log('Download ID:', downloadId);
 
-    // Fetch active brochure settings
-    const brochureSettingsQuery = `*[_type == "brochureSettings" && active == true][0] {
+    // Fetch active brochure settings - prioritize singleton document
+    const brochureSettingsQuery = `*[_type == "brochureSettings" && _id == "brochureSettings" && active == true][0] {
       _id,
       title,
       description,
@@ -119,8 +119,8 @@ export async function POST(request: NextRequest) {
     console.log('📄 Direct file serve request...');
     console.log('Download ID:', downloadId);
 
-    // Fetch active brochure settings
-    const brochureSettingsQuery = `*[_type == "brochureSettings" && active == true][0] {
+    // Fetch active brochure settings - prioritize singleton document
+    const brochureSettingsQuery = `*[_type == "brochureSettings" && _id == "brochureSettings" && active == true][0] {
       _id,
       title,
       pdfFile {

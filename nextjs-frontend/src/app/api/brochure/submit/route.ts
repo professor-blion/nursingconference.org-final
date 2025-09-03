@@ -104,8 +104,8 @@ export async function POST(request: NextRequest) {
       ipAddress,
     });
 
-    // Check if brochure downloads are active
-    const brochureSettingsQuery = `*[_type == "brochureSettings" && active == true][0] {
+    // Check if brochure downloads are active - prioritize singleton document
+    const brochureSettingsQuery = `*[_type == "brochureSettings" && _id == "brochureSettings" && active == true][0] {
       _id,
       title,
       description,
