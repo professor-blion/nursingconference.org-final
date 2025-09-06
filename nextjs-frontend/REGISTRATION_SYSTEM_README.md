@@ -77,7 +77,7 @@ Update the following variables in `.env.local`:
 
 ```env
 # Sanity Configuration
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 SANITY_API_TOKEN=your_sanity_api_token
 

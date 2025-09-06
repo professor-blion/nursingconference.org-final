@@ -27,7 +27,7 @@ async function updateRegistrationTableData() {
     }
     
     console.log('🔗 Connecting to Sanity CMS...');
-    console.log(`📋 Project: ${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3'}`);
+    console.log(`📋 Project: ${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho'}`);
     console.log(`🗄️  Dataset: ${process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'}\n`);
     
     // Fetch all existing registrations

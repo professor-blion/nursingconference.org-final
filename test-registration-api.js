@@ -8,7 +8,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client with the same config as the app
 const client = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   apiVersion: '2023-05-03',
   useCdn: false,

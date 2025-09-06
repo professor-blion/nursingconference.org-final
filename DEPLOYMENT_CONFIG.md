@@ -11,7 +11,7 @@ Copy and paste these environment variables into your Coolify deployment:
 NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-05-03
-SANITY_API_TOKEN=sk5ZJnKnmbkzR8oiue5pXEvOZly20Km0ZHRnc4ywpg8HPby9N3wipoQsOHMSIIj1yTF0dtccBarQQsL2P0YwmP5Uf8QeoHP44FleIkjPXotKSmGPwzkdpDjC2nA1Fbic5W5QnQeghKuQTfnsqLKIWvP4q5idSUpopClvl0BLJcAJTQeBZoQy
+SANITY_API_TOKEN=skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n
 
 # Email Configuration
 SMTP_HOST=smtp.hostinger.com
@@ -154,7 +154,7 @@ https://nursing-conferences-cms.sanity.studio/structure/registrationSystem;regis
 ```bash
 # Check SANITY_API_TOKEN permissions
 # Verify token has 'Editor' or 'Admin' role
-# Test with: curl -H "Authorization: Bearer $SANITY_API_TOKEN" https://api.sanity.io/v1/projects/n3no08m3
+# Test with: curl -H "Authorization: Bearer $SANITY_API_TOKEN" https://api.sanity.io/v1/projects/fl5uetho
 ```
 
 **2. Email Delivery Issues**

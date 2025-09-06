@@ -27,7 +27,7 @@ PAYPAL_WEBHOOK_ID=your_webhook_id_from_paypal_dashboard
 
 # Sanity Configuration (Already configured)
 SANITY_API_TOKEN=your_sanity_write_token
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-05-03
 

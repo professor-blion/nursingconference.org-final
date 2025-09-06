@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client');
 require('dotenv').config({ path: '.env.local' });
 
 const client = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   apiVersion: '2023-05-03',
   token: process.env.SANITY_API_TOKEN,

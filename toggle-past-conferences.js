@@ -4,7 +4,7 @@ require('dotenv').config();
 const { createClient } = require('@sanity/client');
 
 const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   useCdn: false,
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-05-03',
@@ -15,7 +15,7 @@ const client = createClient({
 const action = process.argv[2]; // 'show' or 'hide'
 
 console.log('🔧 Using Sanity Configuration:');
-console.log('   Project ID:', process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3');
+console.log('   Project ID:', process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho');
 console.log('   Dataset:', process.env.NEXT_PUBLIC_SANITY_DATASET || 'production');
 console.log('   Has Token:', !!process.env.SANITY_API_TOKEN);
 console.log('');

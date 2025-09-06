@@ -3,7 +3,7 @@ const { createClient } = require('@sanity/client');
 
 // Initialize Sanity client with the project details
 const client = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2023-05-03',
@@ -209,7 +209,7 @@ const committeeMembers = [
 
 async function populateCommitteeData() {
   console.log('🚀 Starting committee data population...');
-  console.log('📊 Project ID: n3no08m3');
+  console.log('📊 Project ID: fl5uetho');
   console.log('📦 Dataset: production');
   console.log('👥 Members to create: 8');
   
@@ -253,7 +253,7 @@ async function populateCommitteeData() {
           console.log('This script requires a Sanity token with write permissions.');
           console.log('\nTo get a token:');
           console.log('1. Go to https://sanity.io/manage');
-          console.log('2. Select your project (n3no08m3)');
+          console.log('2. Select your project (fl5uetho)');
           console.log('3. Go to API > Tokens');
           console.log('4. Create a new token with "Editor" permissions');
           console.log('5. Add it to this script or the add-sample-committee-data.js file');

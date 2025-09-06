@@ -5,7 +5,7 @@ const { createClient } = require('next-sanity');
 
 // Sanity write client for creating documents
 const sanityWriteClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-05-03',
   useCdn: false,

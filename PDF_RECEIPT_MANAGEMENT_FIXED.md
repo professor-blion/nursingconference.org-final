@@ -27,7 +27,7 @@ All PDF receipt management issues have been successfully resolved. The enhanced 
 ```javascript
 // Added dedicated write client for PDF uploads
 const sanityWriteClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-05-03',
   useCdn: false,
@@ -47,7 +47,7 @@ const sanityWriteClient = createClient({
 Total Registrations: 2
 ├── REG-PDF-UPLOAD-1756042927364 (Dr PDF Upload)
 │   ├── PDF Available: ✅ YES
-│   ├── PDF URL: https://cdn.sanity.io/files/n3no08m3/production/f4d8867c0a806d6222563afb9ca791029716b5ab.pdf
+│   ├── PDF URL: https://cdn.sanity.io/files/fl5uetho/production/f4d8867c0a806d6222563afb9ca791029716b5ab.pdf
 │   ├── PDF Size: 695 KB
 │   └── Download Button: ✅ SHOWS
 └── REG-RECEIPT-TEST-1756041858069 (Dr Receipt Test)

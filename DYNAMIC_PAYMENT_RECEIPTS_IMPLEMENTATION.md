@@ -119,7 +119,7 @@ if (!paymentData.transactionId ||
 ### **REQUIRED Variables:**
 ```bash
 # Sanity CMS (Dynamic Content)
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-05-03
 SANITY_API_TOKEN=your_sanity_api_token

@@ -20,7 +20,7 @@ The brochure download is working on localhost but failing on production due to:
 NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 
 # Add Missing API Token (ADD THIS)
-SANITY_API_TOKEN=skIrRjdaaygkwN7mE9JXLLV8IUPfHl2phKAu0umRR5eCLYuRw4oFi4kXfh3kXa0xxHHJZcv451AY6SFMxGuLWbHUMrPjxppFxA0NAFwgrkEZggVUYPJ3jtKA76br4f07USUJMDOR1JQoS7U0vSsiJzCp8q2CwgAcHiksA7H4FrN04Vh3kC3c
+SANITY_API_TOKEN=skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n
 ```
 
 #### **Complete Environment Variables List:**
@@ -35,7 +35,7 @@ HOSTNAME=0.0.0.0
 NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-05-03
-SANITY_API_TOKEN=sk5ZJnKnmbkzR8oiue5pXEvOZly20Km0ZHRnc4ywpg8HPby9N3wipoQsOHMSIIj1yTF0dtccBarQQsL2P0YwmP5Uf8QeoHP44FleIkjPXotKSmGPwzkdpDjC2nA1Fbic5W5QnQeghKuQTfnsqLKIWvP4q5idSUpopClvl0BLJcAJTQeBZoQy
+SANITY_API_TOKEN=skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n
 
 # PayPal Configuration (existing)
 PAYPAL_CLIENT_ID=AUmI5g_PA8vHr0HSeZq7PukrblnMLeOLQbW60lNHoJGLAqTg3JZjAeracZmAh1WSuuqmZnUIJxLdzGXc
@@ -78,7 +78,7 @@ Test these endpoints after deployment:
 
 3. **Verify Environment Variables**:
    - Ensure no trailing spaces
-   - Confirm exact project ID: `n3no08m3`
+   - Confirm exact project ID: `fl5uetho`
    - Verify API token is complete
 
 ### **Success Indicators:**
@@ -88,7 +88,7 @@ Test these endpoints after deployment:
 - ✅ No "Failed to process" error messages
 
 ## 📋 **Quick Checklist**
-- [ ] Updated `NEXT_PUBLIC_SANITY_PROJECT_ID` to `n3no08m3`
+- [ ] Updated `NEXT_PUBLIC_SANITY_PROJECT_ID` to `fl5uetho`
 - [ ] Added `SANITY_API_TOKEN` environment variable
 - [ ] Triggered new deployment in Coolify
 - [ ] Tested brochure download on production site

@@ -2,7 +2,7 @@ require('dotenv').config();
 const { createClient } = require('@sanity/client');
 
 const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2023-05-03',
   useCdn: false

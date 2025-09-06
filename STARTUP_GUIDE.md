@@ -152,7 +152,7 @@ The startup scripts will automatically:
 
 **Missing Sanity Configuration:**
 ```bash
-NEXT_PUBLIC_SANITY_PROJECT_ID=n3no08m3
+NEXT_PUBLIC_SANITY_PROJECT_ID=fl5uetho
 NEXT_PUBLIC_SANITY_DATASET=production
 SANITY_API_TOKEN=your_actual_token_here
 ```

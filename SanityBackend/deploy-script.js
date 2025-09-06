@@ -6,7 +6,7 @@ const path = require('path');
 const editingClient = createClient({
   projectId: 'fl5uetho',
   dataset: 'production',
-  token: 'skIrRjdaaygkwN7mE9JXLLV8IUPfHl2phKAu0umRR5eCLYuRw4oFi4kXfh3kXa0xxHHJZcv451AY6SFMxGuLWbHUMrPjxppFxA0NAFwgrkEZggVUYPJ3jtKA76br4f07USUJMDOR1JQoS7U0vSsiJzCp8q2CwgAcHiksA7H4FrN04Vh3kC3c',
+  token: 'skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n',
   useCdn: false,
   apiVersion: '2023-05-03'
 });
@@ -15,7 +15,7 @@ const editingClient = createClient({
 const deployClient = createClient({
   projectId: 'fl5uetho',
   dataset: 'production',
-  token: 'skm5Vr6I3J2tGwXbH5VE34OrEZd2YsVkMv8ZOTvxEhLE2YVsABikeolCIUOyVP3vpBPBu1IcEWaIPyXpoJPUGCtq7PYrMb1tBTlxK3GozsWLLVOrLlbn1htqdDFnLLeBciCS3H13s8UhkYaEOwSBCOIRSZDpC8cpRCphSQw18umo9dfGFGGq',
+  token: 'skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n',
   useCdn: false,
   apiVersion: '2023-05-03'
 });

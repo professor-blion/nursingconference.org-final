@@ -216,7 +216,7 @@ export async function POST() {
         message: 'SANITY_API_TOKEN environment variable is required for write operations. Please add it to your .env.local file.',
         instructions: [
           '1. Go to https://sanity.io/manage',
-          '2. Select your project (n3no08m3)',
+          '2. Select your project (fl5uetho)',
           '3. Go to API > Tokens',
           '4. Create a new token with "Editor" permissions',
           '5. Add SANITY_API_TOKEN=your_token to .env.local file',

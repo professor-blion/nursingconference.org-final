@@ -4,10 +4,10 @@ console.log('🔍 TESTING SANITY WRITE PERMISSIONS');
 console.log('===================================\n');
 
 // Use hardcoded values from .env.local
-const projectId = 'n3no08m3';
+const projectId = 'fl5uetho';
 const dataset = 'production';
 const apiVersion = '2023-05-03';
-const token = 'skjc5mkFKiTdcpHQsCWU8p2mUXSlrlvzMpb9TiyRBOoKWOwVjGHLcVaD7cdkCopUZK767GIyCj26Qo4nfnout8TpPgACQdKxvsfetjD1RBbpwQJUmcBXMvXtdGDbXze4YTkc3D8uLLJQBYBy920sd2RNQy1TTwTbbyGxzeyDnTyqVkaMLNgC';
+const token = 'skJxcOEM55Yxtn04BIQ5Cf3gJ0oW58CtryfVcIPnWjsohKhxu0BNDG1psGawYEl4TVmq24g42dbILVm1SvB1CAPfd54X2AmV8YV6sKsNUId0JbwEi90k1gW6tnSvFjJxBpgW8xmpsUvM82hPjmgqQHhrGqEQ3rExNHYpOm7qLWThEeTS8D0n';
 
 console.log('📋 Configuration:');
 console.log(`  Project ID: ${projectId}`);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@sanity/client'
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'n3no08m3'
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'fl5uetho'
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
 const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-05-03'
 const token = process.env.SANITY_API_TOKEN

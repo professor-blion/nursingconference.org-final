@@ -4,7 +4,7 @@ import { createClient } from '@sanity/client';
 
 // Create a write client with token for creating documents
 const writeClient = createClient({
-  projectId: 'n3no08m3',
+  projectId: 'fl5uetho',
   dataset: 'production',
   useCdn: false,
   token: process.env.SANITY_API_TOKEN,
@@ -317,7 +317,7 @@ export async function POST() {
         message: 'SANITY_API_TOKEN environment variable is required for write operations. Please add it to your .env.local file.',
         instructions: [
           '1. Go to https://sanity.io/manage',
-          '2. Select your project (n3no08m3)',
+          '2. Select your project (fl5uetho)',
           '3. Go to API > Tokens',
           '4. Create a new token with "Editor" permissions',
           '5. Add SANITY_API_TOKEN=your_token to .env.local file',
