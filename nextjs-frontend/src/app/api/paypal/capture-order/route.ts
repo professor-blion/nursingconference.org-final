@@ -3,6 +3,87 @@ import { sendPaymentReceiptEmail } from '@/app/services/emailService';
 import { writeClient, client } from '@/app/sanity/client';
 
 /**
+ * ORPHANED PAYPAL ORDER RECOVERY SYSTEM
+ * Creates fallback registrations for valid PayPal payments without corresponding registrations
+ */
+async function createFallbackRegistration(paypalOrderId: string, amount: string, currency: string, captureDetails: any) {
+  try {
+    console.log('🔧 Creating fallback registration for orphaned PayPal order:', {
+      paypalOrderId,
+      amount,
+      currency,
+      captureDetails: captureDetails ? 'Present' : 'Missing'
+    });
+
+    // Generate a recovery registration ID
+    const recoveryRegistrationId = `RECOVERY-${paypalOrderId}`;
+
+    // Extract payer information from PayPal capture details if available
+    const payerInfo = captureDetails?.payer || {};
+    const payerName = payerInfo.name || {};
+    const payerEmail = payerInfo.email_address || 'recovery@example.com';
+
+    // Create fallback registration document
+    const fallbackRegistration = {
+      _type: 'conferenceRegistration',
+      registrationId: recoveryRegistrationId,
+      paypalOrderId: paypalOrderId,
+      personalDetails: {
+        title: 'Dr.',
+        firstName: payerName.given_name || 'Recovered',
+        lastName: payerName.surname || 'Customer',
+        email: payerEmail,
+        phoneNumber: 'N/A - Recovered Order',
+        country: 'Unknown',
+        fullPostalAddress: 'N/A - Recovered from PayPal Order'
+      },
+      selectedRegistrationName: 'Conference Registration (Recovered)',
+      numberOfParticipants: 1,
+      pricing: {
+        registrationFee: parseFloat(amount),
+        accommodationFee: 0,
+        totalPrice: parseFloat(amount),
+        currency: currency || 'USD'
+      },
+      paymentStatus: 'pending', // Will be updated to completed after this function
+      registrationDate: new Date().toISOString(),
+      recoveryInfo: {
+        isRecoveredOrder: true,
+        originalPaypalOrderId: paypalOrderId,
+        recoveryDate: new Date().toISOString(),
+        recoveryReason: 'Orphaned PayPal order - registration not found'
+      }
+    };
+
+    console.log('💾 Saving fallback registration to Sanity...');
+    const result = await writeClient.create(fallbackRegistration);
+
+    if (result) {
+      console.log('✅ Fallback registration created successfully:', {
+        _id: result._id,
+        registrationId: recoveryRegistrationId,
+        paypalOrderId: paypalOrderId,
+        email: payerEmail
+      });
+
+      return {
+        _id: result._id,
+        registrationId: recoveryRegistrationId,
+        personalDetails: fallbackRegistration.personalDetails,
+        paymentStatus: 'pending'
+      };
+    } else {
+      console.error('❌ Failed to create fallback registration');
+      return null;
+    }
+
+  } catch (error) {
+    console.error('❌ Error creating fallback registration:', error);
+    return null;
+  }
+}
+
+/**
  * PayPal Capture Order API Route - Production Version
  * Captures a PayPal order for live payments using production credentials
  */
@@ -145,7 +226,24 @@ export async function POST(request: NextRequest) {
         });
       } else {
         console.error('❌ Registration record not found for:', { registrationId, orderId });
-        throw new Error(`Registration not found for ID: ${registrationId} or Order: ${orderId}`);
+
+        // CRITICAL FIX: ORPHANED PAYPAL ORDER RECOVERY
+        console.log('🚨 ORPHANED PAYPAL ORDER DETECTED - Attempting recovery...');
+
+        // Create a fallback registration for this valid PayPal payment
+        const fallbackRegistration = await createFallbackRegistration(orderId, amount, currency, captureDetails);
+
+        if (fallbackRegistration) {
+          registrationRecord = fallbackRegistration;
+          actualRegistrationId = fallbackRegistration.registrationId;
+          console.log('✅ Fallback registration created:', {
+            documentId: fallbackRegistration._id,
+            registrationId: actualRegistrationId,
+            recoveryType: 'orphaned-order'
+          });
+        } else {
+          throw new Error(`Registration not found for ID: ${registrationId} or Order: ${orderId} and fallback creation failed`);
+        }
       }
     } catch (findError) {
       console.error('❌ Error finding registration record:', findError);

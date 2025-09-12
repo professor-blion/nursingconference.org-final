@@ -94,6 +94,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CRITICAL FIX: PREVENT ORPHANED ORDERS - Validate registration exists
+    console.log('🔍 Validating registration exists before creating PayPal order...');
+
+    try {
+      // Import Sanity client for registration validation
+      const { client } = require('@/app/sanity/client');
+
+      const existingRegistration = await client.fetch(
+        `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
+          _id,
+          registrationId,
+          paymentStatus
+        }`,
+        { registrationId }
+      );
+
+      if (!existingRegistration) {
+        console.error('❌ Registration validation failed - no registration found:', registrationId);
+        return NextResponse.json(
+          {
+            error: 'Registration not found',
+            message: 'Please complete the registration form before proceeding to payment',
+            registrationId,
+            action: 'Please go back and complete the registration form first'
+          },
+          { status: 404 }
+        );
+      }
+
+      console.log('✅ Registration validation passed:', {
+        registrationId: existingRegistration.registrationId,
+        paymentStatus: existingRegistration.paymentStatus
+      });
+
+    } catch (validationError) {
+      console.error('❌ Registration validation error:', validationError);
+      // Continue with order creation as fallback, but log the issue
+      console.warn('⚠️ Continuing with PayPal order creation despite validation error');
+    }
+
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
     if (!accessToken) {
