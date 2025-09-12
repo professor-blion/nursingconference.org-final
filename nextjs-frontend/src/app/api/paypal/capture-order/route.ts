@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendPaymentReceiptEmail } from '@/app/services/emailService';
+import { writeClient, client } from '@/app/sanity/client';
 
 /**
  * PayPal Capture Order API Route - Production Version
@@ -117,34 +118,88 @@ export async function POST(request: NextRequest) {
       status
     });
 
-    // Update registration status in database (optional)
+    // CRITICAL FIX: Find the actual registration record using both temp ID and PayPal order ID
+    let actualRegistrationId = registrationId;
+    let registrationRecord = null;
+
     try {
-      await updateRegistrationPaymentStatus(registrationId, {
-        orderId,
-        transactionId,
-        amount: parseFloat(amount || '0'),
-        currency,
-        status: 'completed',
-        paymentMethod: 'paypal',
-        capturedAt: new Date().toISOString(),
-      });
-    } catch (dbError) {
-      console.error('⚠️ Failed to update registration payment status:', dbError);
-      // Don't fail the request if database update fails
+      console.log('🔍 Finding registration record for payment completion...');
+
+      // First try with the provided registration ID
+      registrationRecord = await client.fetch(
+        `*[_type == "conferenceRegistration" && (registrationId == $regId || paypalOrderId == $orderId)][0]{
+          _id,
+          registrationId,
+          personalDetails,
+          paymentStatus
+        }`,
+        { regId: registrationId, orderId }
+      );
+
+      if (registrationRecord) {
+        actualRegistrationId = registrationRecord.registrationId;
+        console.log('✅ Found registration record:', {
+          documentId: registrationRecord._id,
+          registrationId: actualRegistrationId,
+          currentPaymentStatus: registrationRecord.paymentStatus
+        });
+      } else {
+        console.error('❌ Registration record not found for:', { registrationId, orderId });
+        throw new Error(`Registration not found for ID: ${registrationId} or Order: ${orderId}`);
+      }
+    } catch (findError) {
+      console.error('❌ Error finding registration record:', findError);
+      // Continue with original ID as fallback
     }
 
-    // Trigger complete payment workflow (non-blocking)
+    // Update registration status with complete payment details
+    try {
+      console.log('💾 Updating registration with payment completion...');
+
+      const updateResult = await writeClient
+        .patch(registrationRecord._id)
+        .set({
+          paymentStatus: 'completed',
+          paymentMethod: 'paypal',
+          paypalOrderId: orderId,
+          paypalTransactionId: transactionId,
+          paidAmount: parseFloat(amount || '0'),
+          paidCurrency: currency,
+          paymentCapturedAt: new Date().toISOString(),
+          paymentCompletedAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
+          webhookProcessed: true
+        })
+        .commit();
+
+      console.log('✅ Registration updated with payment completion:', updateResult._id);
+
+    } catch (updateError) {
+      console.error('❌ Failed to update registration with payment details:', updateError);
+      // Don't fail the request, but log the error
+    }
+
+    // Trigger complete payment workflow (non-blocking) with FIXED base URL
     setImmediate(async () => {
       try {
-        console.log('🚀 Triggering complete payment workflow for registration:', registrationId);
+        console.log('🚀 Triggering complete payment workflow for registration:', actualRegistrationId);
 
-        const workflowResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payment/complete-workflow`, {
+        // CRITICAL FIX: Use proper base URL for production
+        const baseUrl = process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : process.env.NEXT_PUBLIC_BASE_URL
+          ? process.env.NEXT_PUBLIC_BASE_URL
+          : 'http://localhost:3000';
+
+        console.log('🌐 Using base URL for workflow:', baseUrl);
+
+        const workflowResponse = await fetch(`${baseUrl}/api/payment/complete-workflow`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            registrationId,
+            registrationId: actualRegistrationId, // Use the actual registration ID
             paymentData: {
               transactionId: transactionId || capture?.id || 'N/A',
               orderId: orderId || result.id || 'N/A',
@@ -153,6 +208,7 @@ export async function POST(request: NextRequest) {
               capturedAt: new Date().toISOString(),
               paymentMethod: 'PayPal'
             },
+            customerEmail: registrationRecord?.personalDetails?.email,
             autoSendEmail: true
           }),
         });
@@ -171,6 +227,17 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // CRITICAL FIX: Return success URL for proper redirect
+    const successUrl = `/registration/success?` +
+      `registration_id=${actualRegistrationId}&` +
+      `transaction_id=${transactionId}&` +
+      `order_id=${orderId}&` +
+      `amount=${amount}&` +
+      `currency=${currency}&` +
+      `payment_method=PayPal&` +
+      `status=completed&` +
+      `captured_at=${encodeURIComponent(new Date().toISOString())}`;
+
     return NextResponse.json({
       success: true,
       orderId,
@@ -178,8 +245,10 @@ export async function POST(request: NextRequest) {
       amount,
       currency,
       status,
-      registrationId,
+      registrationId: actualRegistrationId, // Use the actual registration ID
       capturedAt: new Date().toISOString(),
+      successUrl, // Include success URL for frontend redirect
+      redirectUrl: successUrl // Alternative name for redirect
     });
 
   } catch (error) {

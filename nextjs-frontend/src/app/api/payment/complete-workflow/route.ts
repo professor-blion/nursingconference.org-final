@@ -49,10 +49,12 @@ export async function POST(request: NextRequest) {
       autoSendEmail
     });
     
-    // Step 1: Fetch registration details from Sanity
+    // Step 1: Fetch registration details from Sanity (FIXED: Handle both temp and PayPal IDs)
     console.log('🔍 Step 1: Fetching registration details...');
+
+    // CRITICAL FIX: Search by both registrationId and paypalOrderId to handle ID transitions
     const registration = await client.fetch(
-      `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
+      `*[_type == "conferenceRegistration" && (registrationId == $registrationId || paypalOrderId == $registrationId)][0]{
         _id,
         registrationId,
         personalDetails,
@@ -63,14 +65,41 @@ export async function POST(request: NextRequest) {
         numberOfParticipants,
         pricing,
         paymentStatus,
-        registrationDate
+        registrationDate,
+        paypalOrderId,
+        paypalTransactionId
       }`,
       { registrationId }
     );
-    
+
     if (!registration) {
+      console.error('❌ Registration not found for ID:', registrationId);
+      console.log('🔍 Attempting broader search...');
+
+      // Try a broader search for debugging
+      const allRecentRegistrations = await client.fetch(
+        `*[_type == "conferenceRegistration"] | order(registrationDate desc)[0...5]{
+          _id,
+          registrationId,
+          paypalOrderId,
+          paymentStatus,
+          registrationDate
+        }`
+      );
+
+      console.log('📋 Recent registrations for debugging:', allRecentRegistrations);
+
       return NextResponse.json(
-        { success: false, error: 'Registration not found' },
+        {
+          success: false,
+          error: 'Registration not found',
+          searchedId: registrationId,
+          recentRegistrations: allRecentRegistrations.map(r => ({
+            id: r.registrationId,
+            paypalId: r.paypalOrderId,
+            status: r.paymentStatus
+          }))
+        },
         { status: 404 }
       );
     }

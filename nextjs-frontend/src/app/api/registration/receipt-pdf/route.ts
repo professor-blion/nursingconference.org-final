@@ -65,9 +65,11 @@ export async function POST(request: NextRequest) {
         registrationDate: '2025-01-12T14:30:00Z'
       };
     } else {
-      // Fetch registration details from Sanity for real registrations
+      // CRITICAL FIX: Fetch registration details from Sanity (handle both temp and PayPal IDs)
+      console.log('🔍 Fetching registration for PDF generation:', registrationId);
+
       registrationDetails = await client.fetch(
-        `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
+        `*[_type == "conferenceRegistration" && (registrationId == $registrationId || paypalOrderId == $registrationId)][0]{
           _id,
           registrationId,
           personalDetails,
@@ -78,17 +80,45 @@ export async function POST(request: NextRequest) {
           numberOfParticipants,
           pricing,
           paymentStatus,
-          registrationDate
+          registrationDate,
+          paypalOrderId,
+          paypalTransactionId,
+          paidAmount,
+          paidCurrency
         }`,
         { registrationId }
       );
 
       if (!registrationDetails) {
+        console.error('❌ Registration not found for PDF generation:', registrationId);
+
+        // Try a broader search for debugging
+        const recentRegistrations = await client.fetch(
+          `*[_type == "conferenceRegistration"] | order(registrationDate desc)[0...3]{
+            registrationId,
+            paypalOrderId,
+            paymentStatus
+          }`
+        );
+
+        console.log('📋 Recent registrations for debugging:', recentRegistrations);
+
         return NextResponse.json(
-          { error: 'Registration not found' },
+          {
+            error: 'Registration not found for PDF generation',
+            searchedId: registrationId,
+            recentRegistrations
+          },
           { status: 404 }
         );
       }
+
+      console.log('✅ Registration found for PDF generation:', {
+        _id: registrationDetails._id,
+        registrationId: registrationDetails.registrationId,
+        paypalOrderId: registrationDetails.paypalOrderId,
+        paymentStatus: registrationDetails.paymentStatus
+      });
     }
 
     // Use the UNIFIED PDF generation system for consistency
