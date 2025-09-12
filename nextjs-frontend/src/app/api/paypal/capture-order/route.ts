@@ -227,22 +227,64 @@ export async function POST(request: NextRequest) {
       } else {
         console.error('❌ Registration record not found for:', { registrationId, orderId });
 
-        // CRITICAL FIX: ORPHANED PAYPAL ORDER RECOVERY
-        console.log('🚨 ORPHANED PAYPAL ORDER DETECTED - Attempting recovery...');
+        // CRITICAL FIX: Try email-based lookup before orphaned order recovery
+        if (result?.payer?.email_address) {
+          console.log('🔍 Attempting email-based registration lookup...');
+          const payerEmail = result.payer.email_address;
 
-        // Create a fallback registration for this valid PayPal payment
-        const fallbackRegistration = await createFallbackRegistration(orderId, amount, currency, captureDetails);
+          const emailBasedRegistration = await client.fetch(
+            `*[_type == "conferenceRegistration" && personalDetails.email == $email && paymentStatus == "pending"] | order(registrationDate desc)[0]{
+              _id,
+              registrationId,
+              paypalOrderId,
+              personalDetails,
+              selectedRegistrationName,
+              sponsorType,
+              accommodationType,
+              accommodationNights,
+              numberOfParticipants,
+              pricing,
+              paymentStatus,
+              registrationDate,
+              lastUpdated,
+              isActive
+            }`,
+            { email: payerEmail }
+          );
 
-        if (fallbackRegistration) {
-          registrationRecord = fallbackRegistration;
-          actualRegistrationId = fallbackRegistration.registrationId;
-          console.log('✅ Fallback registration created:', {
-            documentId: fallbackRegistration._id,
-            registrationId: actualRegistrationId,
-            recoveryType: 'orphaned-order'
-          });
-        } else {
-          throw new Error(`Registration not found for ID: ${registrationId} or Order: ${orderId} and fallback creation failed`);
+          if (emailBasedRegistration) {
+            console.log('✅ Found registration by email match:', {
+              registrationId: emailBasedRegistration.registrationId,
+              email: payerEmail,
+              customerName: `${emailBasedRegistration.personalDetails?.firstName || ''} ${emailBasedRegistration.personalDetails?.lastName || ''}`.trim()
+            });
+
+            registrationRecord = emailBasedRegistration;
+            actualRegistrationId = emailBasedRegistration.registrationId;
+
+            console.log('🔗 Linking PayPal order to existing registration...');
+          }
+        }
+
+        // If still no registration found, proceed with orphaned order recovery
+        if (!registrationRecord) {
+          // CRITICAL FIX: ORPHANED PAYPAL ORDER RECOVERY
+          console.log('🚨 ORPHANED PAYPAL ORDER DETECTED - Attempting recovery...');
+
+          // Create a fallback registration for this valid PayPal payment
+          const fallbackRegistration = await createFallbackRegistration(orderId, amount, currency, result);
+
+          if (fallbackRegistration) {
+            registrationRecord = fallbackRegistration;
+            actualRegistrationId = fallbackRegistration.registrationId;
+            console.log('✅ Fallback registration created:', {
+              documentId: fallbackRegistration._id,
+              registrationId: actualRegistrationId,
+              recoveryType: 'orphaned-order'
+            });
+          } else {
+            throw new Error(`Registration not found for ID: ${registrationId} or Order: ${orderId} and fallback creation failed`);
+          }
         }
       }
     } catch (findError) {
