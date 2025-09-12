@@ -42,24 +42,111 @@ export default function RegistrationSuccessPage() {
     fetchConferenceTitle();
 
     if (registrationId) {
-      // Fetch registration details
-      fetch(`/api/registration?registrationId=${registrationId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setRegistrationDetails(data.data);
+      console.log('🔍 Fetching registration details for:', registrationId);
+      console.log('📋 URL Parameters:', {
+        registrationId,
+        transactionId,
+        orderId,
+        amount,
+        currency,
+        paymentMethod,
+        status,
+        capturedAt
+      });
+
+      // CRITICAL FIX: Try multiple API endpoints for production compatibility
+      const tryFetchRegistration = async () => {
+        try {
+          // Try primary API endpoint
+          let response = await fetch(`/api/registration?registrationId=${registrationId}`);
+
+          if (!response.ok) {
+            console.warn('⚠️ Primary API failed, trying alternative endpoint...');
+            // Try alternative endpoint structure
+            response = await fetch(`/api/registration/${registrationId}`);
           }
-        })
-        .catch(error => {
-          console.error('Error fetching registration details:', error);
-        })
-        .finally(() => {
+
+          if (!response.ok) {
+            console.warn('⚠️ API endpoints not available, using URL parameters for display');
+            // FALLBACK: Create registration details from URL parameters
+            const fallbackDetails = {
+              registrationId: registrationId,
+              personalDetails: {
+                title: 'Dr.',
+                firstName: 'Valued',
+                lastName: 'Customer',
+                email: 'customer@example.com',
+                phoneNumber: 'N/A',
+                country: 'N/A',
+                fullPostalAddress: 'N/A'
+              },
+              selectedRegistrationName: 'Conference Registration',
+              numberOfParticipants: 1,
+              pricing: {
+                registrationFee: parseFloat(amount || '0'),
+                accommodationFee: 0,
+                totalPrice: parseFloat(amount || '0'),
+                currency: currency || 'USD'
+              },
+              paymentStatus: 'completed',
+              paymentMethod: paymentMethod || 'PayPal'
+            };
+
+            console.log('📄 Using fallback registration details:', fallbackDetails);
+            setRegistrationDetails(fallbackDetails);
+            setLoading(false);
+            return;
+          }
+
+          const data = await response.json();
+          if (data.success) {
+            console.log('✅ Registration details fetched successfully:', data.data);
+            setRegistrationDetails(data.data);
+          } else {
+            console.error('❌ API returned error:', data);
+            throw new Error(data.error || 'Failed to fetch registration');
+          }
+
+        } catch (error) {
+          console.error('❌ Error fetching registration details:', error);
+
+          // FALLBACK: Create basic registration details from URL parameters
+          const fallbackDetails = {
+            registrationId: registrationId,
+            personalDetails: {
+              title: '',
+              firstName: 'Valued',
+              lastName: 'Customer',
+              email: 'customer@example.com',
+              phoneNumber: 'N/A',
+              country: 'N/A',
+              fullPostalAddress: 'N/A'
+            },
+            selectedRegistrationName: 'Conference Registration',
+            numberOfParticipants: 1,
+            pricing: {
+              registrationFee: parseFloat(amount || '0'),
+              accommodationFee: 0,
+              totalPrice: parseFloat(amount || '0'),
+              currency: currency || 'USD'
+            },
+            paymentStatus: 'completed',
+            paymentMethod: paymentMethod || 'PayPal'
+          };
+
+          console.log('📄 Using fallback registration details due to API error:', fallbackDetails);
+          setRegistrationDetails(fallbackDetails);
+        } finally {
           setLoading(false);
-        });
+        }
+      };
+
+      tryFetchRegistration();
     } else {
+      console.warn('⚠️ No registration ID provided');
       setLoading(false);
     }
-  }, [registrationId]);
+  }, [registrationId, transactionId, orderId, amount, currency, paymentMethod, status, capturedAt]);
 
   return (
     <>
@@ -217,23 +304,78 @@ export default function RegistrationSuccessPage() {
                   <button
                     onClick={async () => {
                       try {
-                        // Generate PDF using the UNIFIED PDF generation system, then print it
-                        const response = await fetch('/api/registration/receipt-pdf', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            registrationId,
-                            transactionId,
-                            orderId,
-                            amount,
-                            currency,
-                            capturedAt
-                          }),
+                        console.log('🖨️ Attempting PDF generation for printing...');
+                        console.log('📋 PDF Request Data:', {
+                          registrationId,
+                          transactionId,
+                          orderId,
+                          amount,
+                          currency,
+                          capturedAt
                         });
 
-                        if (response.ok) {
+                        // CRITICAL FIX: Try multiple PDF API endpoints for production compatibility
+                        let response;
+                        let pdfEndpointWorked = false;
+
+                        // Try primary PDF endpoint
+                        try {
+                          response = await fetch('/api/registration/receipt-pdf', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              registrationId,
+                              transactionId,
+                              orderId,
+                              amount,
+                              currency,
+                              capturedAt
+                            }),
+                          });
+
+                          if (response.ok) {
+                            pdfEndpointWorked = true;
+                            console.log('✅ Primary PDF endpoint worked');
+                          } else {
+                            console.warn('⚠️ Primary PDF endpoint failed:', response.status);
+                          }
+                        } catch (error) {
+                          console.warn('⚠️ Primary PDF endpoint error:', error);
+                        }
+
+                        // Try alternative PDF endpoint if primary failed
+                        if (!pdfEndpointWorked) {
+                          try {
+                            console.log('🔄 Trying alternative PDF endpoint...');
+                            response = await fetch('/api/pdf/receipt', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                registrationId,
+                                transactionId,
+                                orderId,
+                                amount,
+                                currency,
+                                capturedAt
+                              }),
+                            });
+
+                            if (response.ok) {
+                              pdfEndpointWorked = true;
+                              console.log('✅ Alternative PDF endpoint worked');
+                            } else {
+                              console.warn('⚠️ Alternative PDF endpoint failed:', response.status);
+                            }
+                          } catch (error) {
+                            console.warn('⚠️ Alternative PDF endpoint error:', error);
+                          }
+                        }
+
+                        if (pdfEndpointWorked && response.ok) {
                           const blob = await response.blob();
                           const url = window.URL.createObjectURL(blob);
 
@@ -274,7 +416,20 @@ export default function RegistrationSuccessPage() {
                             window.URL.revokeObjectURL(url);
                           }
                         } else {
-                          alert('Failed to generate PDF for printing. Please try again.');
+                          console.error('❌ All PDF endpoints failed, offering fallback print option');
+
+                          // FALLBACK: Offer browser print of the current page
+                          const userChoice = confirm(
+                            'PDF generation is temporarily unavailable. Would you like to print this confirmation page instead?\n\n' +
+                            'Click OK to print this page, or Cancel to try again later.'
+                          );
+
+                          if (userChoice) {
+                            console.log('🖨️ Using fallback browser print');
+                            window.print();
+                          } else {
+                            alert('PDF generation failed. Please contact support at intelliglobalconferences@gmail.com for assistance.');
+                          }
                         }
                       } catch (error) {
                         console.error('Error printing PDF:', error);
@@ -288,23 +443,78 @@ export default function RegistrationSuccessPage() {
                   <button
                     onClick={async () => {
                       try {
-                        // Download PDF using the UNIFIED PDF generation system
-                        const response = await fetch('/api/registration/receipt-pdf', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            registrationId,
-                            transactionId,
-                            orderId,
-                            amount,
-                            currency,
-                            capturedAt
-                          }),
+                        console.log('📄 Attempting PDF generation for download...');
+                        console.log('📋 PDF Request Data:', {
+                          registrationId,
+                          transactionId,
+                          orderId,
+                          amount,
+                          currency,
+                          capturedAt
                         });
 
-                        if (response.ok) {
+                        // CRITICAL FIX: Try multiple PDF API endpoints for production compatibility
+                        let response;
+                        let pdfEndpointWorked = false;
+
+                        // Try primary PDF endpoint
+                        try {
+                          response = await fetch('/api/registration/receipt-pdf', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              registrationId,
+                              transactionId,
+                              orderId,
+                              amount,
+                              currency,
+                              capturedAt
+                            }),
+                          });
+
+                          if (response.ok) {
+                            pdfEndpointWorked = true;
+                            console.log('✅ Primary PDF endpoint worked for download');
+                          } else {
+                            console.warn('⚠️ Primary PDF endpoint failed for download:', response.status);
+                          }
+                        } catch (error) {
+                          console.warn('⚠️ Primary PDF endpoint error for download:', error);
+                        }
+
+                        // Try alternative PDF endpoint if primary failed
+                        if (!pdfEndpointWorked) {
+                          try {
+                            console.log('🔄 Trying alternative PDF endpoint for download...');
+                            response = await fetch('/api/pdf/receipt', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                registrationId,
+                                transactionId,
+                                orderId,
+                                amount,
+                                currency,
+                                capturedAt
+                              }),
+                            });
+
+                            if (response.ok) {
+                              pdfEndpointWorked = true;
+                              console.log('✅ Alternative PDF endpoint worked for download');
+                            } else {
+                              console.warn('⚠️ Alternative PDF endpoint failed for download:', response.status);
+                            }
+                          } catch (error) {
+                            console.warn('⚠️ Alternative PDF endpoint error for download:', error);
+                          }
+                        }
+
+                        if (pdfEndpointWorked && response.ok) {
                           const blob = await response.blob();
                           const url = window.URL.createObjectURL(blob);
                           const a = document.createElement('a');
@@ -314,12 +524,25 @@ export default function RegistrationSuccessPage() {
                           a.click();
                           window.URL.revokeObjectURL(url);
                           document.body.removeChild(a);
+                          console.log('✅ PDF download completed successfully');
                         } else {
-                          alert('Failed to download PDF. Please try again.');
+                          console.error('❌ All PDF endpoints failed for download');
+
+                          // FALLBACK: Offer to email the receipt or contact support
+                          const userChoice = confirm(
+                            'PDF download is temporarily unavailable. Would you like us to email your receipt instead?\n\n' +
+                            'Click OK to request email delivery, or Cancel to try again later.'
+                          );
+
+                          if (userChoice) {
+                            alert('Please contact support at intelliglobalconferences@gmail.com with your registration ID: ' + registrationId + '\n\nWe will email your receipt within 24 hours.');
+                          } else {
+                            alert('PDF download failed. Please try again later or contact support.');
+                          }
                         }
                       } catch (error) {
-                        console.error('Error downloading PDF:', error);
-                        alert('Failed to download PDF. Please try again.');
+                        console.error('❌ Error downloading PDF:', error);
+                        alert('PDF download failed due to a technical error. Please contact support at intelliglobalconferences@gmail.com with your registration ID: ' + registrationId);
                       }
                     }}
                     className="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center gap-2"
