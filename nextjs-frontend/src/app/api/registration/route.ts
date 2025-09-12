@@ -356,43 +356,66 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch registration from Sanity
+    // CRITICAL FIX: Enhanced registration lookup for both regular and recovery registrations
+    console.log('🔍 Looking up registration:', registrationId);
+
     const registration = await client.fetch(
-      `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
+      `*[_type == "conferenceRegistration" && (registrationId == $registrationId || paypalOrderId == $registrationId)][0]{
         _id,
         registrationId,
+        paypalOrderId,
         personalDetails,
-        registrationType->{
-          name,
-          category
-        },
-        sponsorshipTier->{
-          tierName,
-          price
-        },
-        accommodationOption{
-          hotel->{
-            hotelName
-          },
-          roomType,
-          nights
-        },
+        selectedRegistrationName,
+        sponsorType,
+        accommodationType,
+        accommodationNights,
         numberOfParticipants,
         pricing,
         paymentStatus,
         registrationDate,
         lastUpdated,
-        isActive
+        isActive,
+        recoveryInfo
       }`,
       { registrationId }
     );
 
     if (!registration) {
+      console.error('❌ Registration not found for ID:', registrationId);
+
+      // Try a broader search for debugging
+      const recentRegistrations = await client.fetch(
+        `*[_type == "conferenceRegistration"] | order(registrationDate desc)[0...5]{
+          registrationId,
+          paypalOrderId,
+          paymentStatus,
+          personalDetails
+        }`
+      );
+
+      console.log('📋 Recent registrations for debugging:', recentRegistrations);
+
       return NextResponse.json(
-        { error: 'Registration not found' },
+        {
+          error: 'Registration not found',
+          searchedId: registrationId,
+          recentRegistrations: recentRegistrations.map(r => ({
+            registrationId: r.registrationId,
+            paypalOrderId: r.paypalOrderId,
+            paymentStatus: r.paymentStatus,
+            email: r.personalDetails?.email
+          }))
+        },
         { status: 404 }
       );
     }
+
+    console.log('✅ Registration found:', {
+      registrationId: registration.registrationId,
+      paypalOrderId: registration.paypalOrderId,
+      paymentStatus: registration.paymentStatus,
+      isRecovery: !!registration.recoveryInfo
+    });
 
     return NextResponse.json({
       success: true,

@@ -65,20 +65,27 @@ export async function POST(request: NextRequest) {
       if (!registrationDetails) {
         console.warn('⚠️ Registration not found in Sanity, using fallback data');
         
-        // Create fallback registration data from URL parameters
+        // CRITICAL FIX: Create comprehensive fallback registration data from URL parameters
+        const isRecoveryOrder = registrationId.startsWith('RECOVERY-');
+        const originalOrderId = isRecoveryOrder ? registrationId.replace('RECOVERY-', '') : registrationId;
+
         registrationDetails = {
           _id: 'fallback-registration',
           registrationId: registrationId,
+          paypalOrderId: originalOrderId,
           personalDetails: {
             title: 'Dr.',
-            firstName: 'Valued',
-            lastName: 'Customer',
-            email: 'customer@example.com',
-            phoneNumber: 'N/A',
-            country: 'N/A',
-            fullPostalAddress: 'N/A'
+            firstName: isRecoveryOrder ? 'Recovered' : 'Valued',
+            lastName: isRecoveryOrder ? 'Customer' : 'Customer',
+            email: isRecoveryOrder ? 'recovery@example.com' : 'customer@example.com',
+            phoneNumber: isRecoveryOrder ? 'N/A - Recovered Order' : '+1-XXX-XXX-XXXX',
+            country: 'United States',
+            fullPostalAddress: isRecoveryOrder ? 'N/A - Recovered from PayPal Order' : '123 Main Street, City, State 12345'
           },
-          selectedRegistrationName: 'Conference Registration',
+          selectedRegistrationName: isRecoveryOrder ? 'Conference Registration (Recovered)' : 'Conference Registration',
+          sponsorType: null,
+          accommodationType: null,
+          accommodationNights: null,
           numberOfParticipants: 1,
           pricing: {
             registrationFee: parseFloat(amount || '0'),
@@ -87,7 +94,13 @@ export async function POST(request: NextRequest) {
             currency: currency || 'USD'
           },
           paymentStatus: 'completed',
-          registrationDate: capturedAt || new Date().toISOString()
+          registrationDate: capturedAt || new Date().toISOString(),
+          recoveryInfo: isRecoveryOrder ? {
+            isRecoveredOrder: true,
+            originalPaypalOrderId: originalOrderId,
+            recoveryDate: new Date().toISOString(),
+            recoveryReason: 'Orphaned PayPal order - registration recovered'
+          } : null
         };
       }
 
