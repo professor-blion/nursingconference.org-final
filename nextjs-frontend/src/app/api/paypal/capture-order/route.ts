@@ -133,157 +133,41 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if database update fails
     }
 
-    // Send payment receipt email with REAL PayPal data (non-blocking with enhanced error handling)
+    // Trigger complete payment workflow (non-blocking)
     setImmediate(async () => {
       try {
-        console.log('📧 Initiating REAL payment receipt email for registration:', registrationId);
-        console.log('🔧 Production email delivery system starting...');
+        console.log('🚀 Triggering complete payment workflow for registration:', registrationId);
 
-        // Import the updated payment receipt emailer
-        const { sendPaymentReceiptEmailWithRealData } = await import('../../../utils/paymentReceiptEmailer');
-
-        // Fetch registration data from Sanity with retry logic and complete field structure
-        let registration = null;
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        while (!registration && retryCount < maxRetries) {
-          try {
-            registration = await client.fetch(
-              `*[_type == "conferenceRegistration" && _id == $registrationId][0]{
-                _id,
-                registrationId,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                country,
-                address,
-                registrationType,
-                personalDetails,
-                pricing,
-                paymentStatus,
-                registrationDate,
-                pdfReceipt
-              }`,
-              { registrationId }
-            );
-
-            if (!registration) {
-              retryCount++;
-              console.log(`⚠️ Registration not found, retry ${retryCount}/${maxRetries}...`);
-              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
-            }
-          } catch (fetchError) {
-            retryCount++;
-            console.error(`❌ Error fetching registration (attempt ${retryCount}):`, fetchError);
-            if (retryCount >= maxRetries) throw fetchError;
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-          }
-        }
-
-        if (!registration) {
-          throw new Error(`Registration not found after ${maxRetries} attempts: ${registrationId}`);
-        }
-
-        console.log('✅ Registration data retrieved successfully');
-        console.log('📋 Registration fields:', {
-          _id: registration._id,
-          registrationId: registration.registrationId,
-          email: registration.email || registration.personalDetails?.email,
-          hasPersonalDetails: !!registration.personalDetails
+        const workflowResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payment/complete-workflow`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            registrationId,
+            paymentData: {
+              transactionId: transactionId || capture?.id || 'N/A',
+              orderId: orderId || result.id || 'N/A',
+              amount: amount || capture?.amount?.value || '0',
+              currency: currency || capture?.amount?.currency_code || 'USD',
+              capturedAt: new Date().toISOString(),
+              paymentMethod: 'PayPal'
+            },
+            autoSendEmail: true
+          }),
         });
 
-        // Prepare REAL payment data from PayPal response
-        const realPaymentData = {
-          transactionId: transactionId || capture?.id || 'N/A',
-          orderId: orderId || result.id || 'N/A',
-          amount: amount || capture?.amount?.value || '0',
-          currency: currency || capture?.amount?.currency_code || 'USD',
-          paymentMethod: 'PayPal',
-          paymentDate: new Date().toISOString(),
-          status: status || capture?.status || 'COMPLETED',
-          capturedAt: new Date().toISOString(),
-          paypalOrderId: result.id,
-          paypalCaptureId: capture?.id,
-          paypalStatus: capture?.status
-        };
-
-        // Prepare registration data with correct structure for email system
-        const realRegistrationData = {
-          _id: registration._id, // CRITICAL: Required for PDF storage
-          registrationId: registration.registrationId || registration._id,
-          fullName: `${registration.firstName || registration.personalDetails?.firstName || ''} ${registration.lastName || registration.personalDetails?.lastName || ''}`.trim(),
-          email: registration.email || registration.personalDetails?.email,
-          phone: registration.phoneNumber || registration.personalDetails?.phoneNumber || 'N/A',
-          country: registration.country || registration.personalDetails?.country || 'N/A',
-          address: registration.address || registration.personalDetails?.fullPostalAddress || 'N/A',
-          registrationType: registration.registrationType || 'Regular Registration',
-          numberOfParticipants: '1',
-          // Include original registration object for fallback
-          originalRegistration: registration
-        };
-
-        console.log('📋 Prepared registration data:', {
-          _id: realRegistrationData._id,
-          registrationId: realRegistrationData.registrationId,
-          email: realRegistrationData.email,
-          fullName: realRegistrationData.fullName
-        });
-
-        // Use the correct email field
-        const recipientEmail = realRegistrationData.email;
-
-        if (!recipientEmail) {
-          throw new Error('No email address found for registration');
+        if (workflowResponse.ok) {
+          const workflowResult = await workflowResponse.json();
+          console.log('✅ Complete payment workflow executed successfully:', workflowResult.details);
+        } else {
+          const workflowError = await workflowResponse.json();
+          console.error('❌ Payment workflow failed:', workflowError);
         }
 
-        console.log('📧 Sending payment receipt to:', recipientEmail);
-
-        await sendPaymentReceiptEmailWithRealData(
-          realPaymentData,
-          realRegistrationData,
-          recipientEmail
-        );
-
-        console.log('✅ REAL payment receipt email sent successfully for:', registrationId);
-        console.log('📊 Email delivery metrics:', {
-          registrationId,
-          transactionId,
-          recipientEmail: registration.personalDetails?.email,
-          deliveryTime: new Date().toISOString(),
-          environment: process.env.NODE_ENV
-        });
-
-      } catch (emailError) {
-        console.error('⚠️ Failed to send REAL payment receipt email (non-blocking):', {
-          error: emailError instanceof Error ? emailError.message : 'Unknown error',
-          stack: emailError instanceof Error ? emailError.stack : undefined,
-          registrationId,
-          transactionId,
-          recipientEmail: registration?.personalDetails?.email,
-          timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV,
-          smtpConfig: {
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            user: process.env.SMTP_USER,
-            hasPassword: !!process.env.SMTP_PASS
-          }
-        });
-
-        // Log specific error types for better debugging
-        if (emailError instanceof Error) {
-          if (emailError.message.includes('SMTP')) {
-            console.error('🔧 SMTP Configuration Issue - Check environment variables and network connectivity');
-          } else if (emailError.message.includes('authentication')) {
-            console.error('🔐 Authentication Issue - Verify SMTP credentials');
-          } else if (emailError.message.includes('timeout')) {
-            console.error('⏱️ Timeout Issue - Check network connectivity and SMTP server availability');
-          }
-        }
-
-        // Email failure doesn't affect payment success
+      } catch (workflowError) {
+        console.error('❌ Error triggering payment workflow:', workflowError);
+        // Workflow failure doesn't affect payment success
       }
     });
 

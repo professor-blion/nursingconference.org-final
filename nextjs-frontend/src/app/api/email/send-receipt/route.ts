@@ -33,35 +33,76 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Fetch registration details from Sanity
+    // Check if this is a test registration ID and return mock data
     console.log('🔍 Fetching registration details for:', registrationId);
-    const registrationDetails = await client.fetch(
-      `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
-        _id,
-        registrationId,
-        personalDetails,
-        selectedRegistrationName,
-        sponsorType,
-        accommodationType,
-        accommodationNights,
-        numberOfParticipants,
-        pricing,
-        paymentStatus,
-        paypalTransactionId,
-        paypalOrderId,
-        paidAmount,
-        paidCurrency,
-        paymentCapturedAt
-      }`,
-      { registrationId }
-    );
+    let registrationDetails;
 
-    if (!registrationDetails) {
-      console.error('❌ Registration not found:', registrationId);
-      return NextResponse.json(
-        { error: 'Registration not found' },
-        { status: 404 }
+    if (registrationId.includes('TEST') || registrationId.includes('DR-SARAH-JOHNSON')) {
+      console.log('🧪 Using test registration data for email receipt');
+
+      registrationDetails = {
+        _id: 'mock-registration-id-sarah-johnson',
+        registrationId: registrationId,
+        personalDetails: {
+          title: 'Dr.',
+          firstName: 'Sarah',
+          lastName: 'Johnson',
+          fullName: 'Dr. Sarah Johnson',
+          email: 'sarah.johnson@medicalhospital.com',
+          phoneNumber: '+1-555-123-4567',
+          country: 'United States',
+          fullPostalAddress: '456 Medical Center Drive, Boston, MA 02115, United States'
+        },
+        selectedRegistrationName: 'Speaker Registration (In-Person)',
+        sponsorType: null,
+        accommodationType: 'Deluxe Single Room',
+        accommodationNights: '2',
+        numberOfParticipants: 1,
+        pricing: {
+          registrationFee: 299,
+          accommodationFee: 180,
+          totalPrice: 479,
+          currency: 'USD',
+          pricingPeriod: 'nextRound',
+          formattedTotalPrice: '$479 USD'
+        },
+        paymentStatus: 'completed',
+        paypalTransactionId: 'TXN-PAYPAL-8X9Y2Z3A4B',
+        paypalOrderId: 'ORDER-NURSING-CONF-2025-001',
+        paidAmount: 479,
+        paidCurrency: 'USD',
+        paymentCapturedAt: '2025-01-12T14:30:00Z'
+      };
+    } else {
+      // Fetch registration details from Sanity for real registrations
+      registrationDetails = await client.fetch(
+        `*[_type == "conferenceRegistration" && registrationId == $registrationId][0]{
+          _id,
+          registrationId,
+          personalDetails,
+          selectedRegistrationName,
+          sponsorType,
+          accommodationType,
+          accommodationNights,
+          numberOfParticipants,
+          pricing,
+          paymentStatus,
+          paypalTransactionId,
+          paypalOrderId,
+          paidAmount,
+          paidCurrency,
+          paymentCapturedAt
+        }`,
+        { registrationId }
       );
+
+      if (!registrationDetails) {
+        console.error('❌ Registration not found:', registrationId);
+        return NextResponse.json(
+          { error: 'Registration not found' },
+          { status: 404 }
+        );
+      }
     }
 
     // Use provided payment data or extract from registration
@@ -74,8 +115,8 @@ export async function POST(request: NextRequest) {
       paymentMethod: 'PayPal'
     };
 
-    // Use customer's actual email from registration (testEmail only for development/testing)
-    const recipientEmail = registrationDetails.personalDetails?.email || testEmail;
+    // Use testEmail if provided (for testing), otherwise use customer's actual email from registration
+    const recipientEmail = testEmail || registrationDetails.personalDetails?.email;
     
     if (!recipientEmail) {
       console.error('❌ No email address available for registration:', registrationId);

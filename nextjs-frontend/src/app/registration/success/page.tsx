@@ -9,13 +9,15 @@ export default function RegistrationSuccessPage() {
   const [conferenceTitle, setConferenceTitle] = useState<string>('International Nursing Conference 2025'); // Fallback
   const [loading, setLoading] = useState(true);
 
-  const transactionId = searchParams?.get('transaction_id');
-  const orderId = searchParams?.get('order_id');
-  const registrationId = searchParams?.get('registration_id');
-  const paymentMethod = searchParams?.get('payment_method') || 'PayPal';
+  // Parse URL parameters with multiple possible formats
+  const transactionId = searchParams?.get('transaction_id') || searchParams?.get('transactionId');
+  const orderId = searchParams?.get('order_id') || searchParams?.get('orderId');
+  const registrationId = searchParams?.get('registration_id') || searchParams?.get('registrationId');
+  const paymentMethod = searchParams?.get('payment_method') || searchParams?.get('paymentMethod') || 'PayPal';
   const amount = searchParams?.get('amount');
   const currency = searchParams?.get('currency') || 'USD';
-  const capturedAt = searchParams?.get('captured_at');
+  const capturedAt = searchParams?.get('captured_at') || searchParams?.get('capturedAt');
+  const status = searchParams?.get('status');
 
   // Function to fetch conference title from Sanity
   const fetchConferenceTitle = async () => {
@@ -213,10 +215,75 @@ export default function RegistrationSuccessPage() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-6 no-print">
                   <button
-                    onClick={() => window.print()}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={async () => {
+                      try {
+                        // Generate PDF using the UNIFIED PDF generation system, then print it
+                        const response = await fetch('/api/registration/receipt-pdf', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            registrationId,
+                            transactionId,
+                            orderId,
+                            amount,
+                            currency,
+                            capturedAt
+                          }),
+                        });
+
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+
+                          // Open PDF in new window for printing
+                          const printWindow = window.open(url, '_blank', 'width=800,height=600');
+
+                          if (printWindow) {
+                            // Wait for PDF to load in the new window, then trigger print
+                            printWindow.onload = () => {
+                              setTimeout(() => {
+                                try {
+                                  printWindow.print();
+                                  // Close the window after printing (optional)
+                                  printWindow.onafterprint = () => {
+                                    printWindow.close();
+                                    window.URL.revokeObjectURL(url);
+                                  };
+                                } catch (error) {
+                                  console.error('Print error:', error);
+                                  // Keep window open if print fails so user can manually print
+                                }
+                              }, 1000); // Give PDF time to fully load
+                            };
+
+                            // Fallback: if onload doesn't work, try after a delay
+                            setTimeout(() => {
+                              if (printWindow && !printWindow.closed) {
+                                try {
+                                  printWindow.print();
+                                } catch (error) {
+                                  console.error('Fallback print error:', error);
+                                }
+                              }
+                            }, 2000);
+                          } else {
+                            // If popup was blocked, show message to user
+                            alert('Please allow popups for this site to enable PDF printing. You can also use the Download button and print manually.');
+                            window.URL.revokeObjectURL(url);
+                          }
+                        } else {
+                          alert('Failed to generate PDF for printing. Please try again.');
+                        }
+                      } catch (error) {
+                        console.error('Error printing PDF:', error);
+                        alert('Failed to print PDF. Please try again.');
+                      }
+                    }}
+                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2"
                   >
-                    Print Registration Receipt
+                    🖨️ Print PDF Receipt
                   </button>
                   <button
                     onClick={async () => {
@@ -255,55 +322,15 @@ export default function RegistrationSuccessPage() {
                         alert('Failed to download PDF. Please try again.');
                       }
                     }}
-                    className="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center gap-2"
                   >
-                    Download PDF Receipt
-                  </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        // Use the unified email receipt system instead of the old PDF route
-                        const response = await fetch('/api/email/send-receipt', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            registrationId,
-                            transactionId,
-                            orderId,
-                            amount,
-                            currency,
-                            capturedAt
-                            // Removed testEmail - will use customer's actual email from registration
-                          }),
-                        });
-
-                        if (response.ok) {
-                          const result = await response.json();
-                          if (result.success) {
-                            alert('✅ Payment receipt email sent successfully! Please check your email inbox.');
-                          } else {
-                            throw new Error(result.error || 'Failed to send receipt email');
-                          }
-                        } else {
-                          const errorData = await response.json();
-                          throw new Error(errorData.error || 'Failed to send receipt email');
-                        }
-                      } catch (error) {
-                        console.error('Error sending receipt email:', error);
-                        alert('Failed to send receipt email. Please try again.');
-                      }
-                    }}
-                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    Email PDF Receipt
+                    📄 Download PDF Receipt
                   </button>
                   <a
                     href="/"
-                    className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 text-center"
+                    className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 text-center flex items-center justify-center gap-2"
                   >
-                    Back to Home
+                    🏠 Back to Home
                   </a>
                 </div>
               </div>

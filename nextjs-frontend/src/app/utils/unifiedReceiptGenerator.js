@@ -207,7 +207,7 @@ async function generateBlueHeaderReceiptPDF(paymentData, registrationData, recei
   doc.setTextColor(...colors.footerText);
   doc.text(`© 2025 ${receiptSettings.conferenceTitle || 'International Nursing Conference 2025'}`, LAYOUT.margins.left, yPos);
   yPos += LAYOUT.spacing.lineHeight;
-  doc.text(`Generated on: ${new Date().toLocaleString()}`, LAYOUT.margins.left, yPos);
+  doc.text(`Generated on: ${formatDate(paymentData.paymentDate || paymentData.capturedAt)}`, LAYOUT.margins.left, yPos);
 
   return Buffer.from(doc.output('arraybuffer'));
 }
