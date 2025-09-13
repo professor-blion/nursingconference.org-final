@@ -65,43 +65,76 @@ export async function POST(request: NextRequest) {
       if (!registrationDetails) {
         console.warn('⚠️ Registration not found in Sanity, using fallback data');
         
-        // CRITICAL FIX: Create comprehensive fallback registration data from URL parameters
+        // CRITICAL FIX: REGISTRATION FORM DATA PRIORITY - NEVER USE PAYPAL PAYER DATA
         const isRecoveryOrder = registrationId.startsWith('RECOVERY-');
         const originalOrderId = isRecoveryOrder ? registrationId.replace('RECOVERY-', '') : registrationId;
 
-        registrationDetails = {
-          _id: 'fallback-registration',
-          registrationId: registrationId,
-          paypalOrderId: originalOrderId,
-          personalDetails: {
-            title: 'Dr.',
-            firstName: isRecoveryOrder ? 'Recovered' : 'Valued',
-            lastName: isRecoveryOrder ? 'Customer' : 'Customer',
-            email: isRecoveryOrder ? 'recovery@example.com' : 'customer@example.com',
-            phoneNumber: isRecoveryOrder ? 'N/A - Recovered Order' : '+1-XXX-XXX-XXXX',
-            country: 'United States',
-            fullPostalAddress: isRecoveryOrder ? 'N/A - Recovered from PayPal Order' : '123 Main Street, City, State 12345'
-          },
-          selectedRegistrationName: isRecoveryOrder ? 'Conference Registration (Recovered)' : 'Conference Registration',
-          sponsorType: null,
-          accommodationType: null,
-          accommodationNights: null,
-          numberOfParticipants: 1,
-          pricing: {
-            registrationFee: parseFloat(amount || '0'),
-            accommodationFee: 0,
-            totalPrice: parseFloat(amount || '0'),
-            currency: currency || 'USD'
-          },
-          paymentStatus: 'completed',
-          registrationDate: capturedAt || new Date().toISOString(),
-          recoveryInfo: isRecoveryOrder ? {
-            isRecoveredOrder: true,
-            originalPaypalOrderId: originalOrderId,
-            recoveryDate: new Date().toISOString(),
-            recoveryReason: 'Orphaned PayPal order - registration recovered'
-          } : null
-        };
+        if (isRecoveryOrder) {
+          // For recovery orders, show clear message that customer must contact support
+          registrationDetails = {
+            _id: 'recovery-order',
+            registrationId: registrationId,
+            paypalOrderId: originalOrderId,
+            personalDetails: {
+              title: 'N/A',
+              firstName: 'RECOVERY',
+              lastName: 'ORDER',
+              email: 'support@intelliglobalconferences.com',
+              phoneNumber: 'Contact Support',
+              country: 'Contact Support',
+              fullPostalAddress: 'Please contact support@intelliglobalconferences.com for customer details'
+            },
+            selectedRegistrationName: 'Recovery Order - Contact Support',
+            sponsorType: null,
+            accommodationType: null,
+            accommodationNights: null,
+            numberOfParticipants: 1,
+            pricing: {
+              registrationFee: parseFloat(amount || '0'),
+              accommodationFee: 0,
+              totalPrice: parseFloat(amount || '0'),
+              currency: currency || 'USD'
+            },
+            paymentStatus: 'completed',
+            registrationDate: capturedAt || new Date().toISOString(),
+            recoveryInfo: {
+              isRecoveredOrder: true,
+              originalPaypalOrderId: originalOrderId,
+              recoveryDate: new Date().toISOString(),
+              recoveryReason: 'Orphaned PayPal order - customer must contact support',
+              supportMessage: 'Please contact support@intelliglobalconferences.com to provide your registration details'
+            }
+          };
+        } else {
+          // For normal orders, create professional fallback (should rarely be used)
+          registrationDetails = {
+            _id: 'fallback-registration',
+            registrationId: registrationId,
+            paypalOrderId: originalOrderId,
+            personalDetails: {
+              title: 'Dr.',
+              firstName: 'Valued',
+              lastName: 'Customer',
+              email: 'customer@example.com',
+              phoneNumber: 'Please contact support',
+              country: 'Please contact support',
+              fullPostalAddress: 'Please contact support@intelliglobalconferences.com'
+            },
+            selectedRegistrationName: 'Conference Registration',
+            sponsorType: null,
+            accommodationType: null,
+            accommodationNights: null,
+            numberOfParticipants: 1,
+            pricing: {
+              registrationFee: parseFloat(amount || '0'),
+              accommodationFee: 0,
+              totalPrice: parseFloat(amount || '0'),
+              currency: currency || 'USD'
+            },
+            paymentStatus: 'completed',
+            registrationDate: capturedAt || new Date().toISOString()
+          };
+        }
       }
 
       console.log('✅ Registration data prepared for PDF');

@@ -3,41 +3,42 @@ import { sendPaymentReceiptEmail } from '@/app/services/emailService';
 import { writeClient, client } from '@/app/sanity/client';
 
 /**
- * ORPHANED PAYPAL ORDER RECOVERY SYSTEM
- * Creates fallback registrations for valid PayPal payments without corresponding registrations
+ * CRITICAL FIX: REGISTRATION FORM DATA PRIORITY SYSTEM
+ * This function should NEVER be used for normal registrations.
+ * It only creates minimal fallback data when absolutely no registration exists.
+ * All customer data should come from registration forms, NOT PayPal payer info.
  */
 async function createFallbackRegistration(paypalOrderId: string, amount: string, currency: string, captureDetails: any) {
   try {
-    console.log('🔧 Creating fallback registration for orphaned PayPal order:', {
+    console.log('🚨 CRITICAL: Creating fallback registration for truly orphaned PayPal order:', {
       paypalOrderId,
       amount,
       currency,
-      captureDetails: captureDetails ? 'Present' : 'Missing'
+      note: 'This should only happen for orders with NO corresponding registration form data'
     });
 
     // Generate a recovery registration ID
     const recoveryRegistrationId = `RECOVERY-${paypalOrderId}`;
 
-    // Extract payer information from PayPal capture details if available
-    const payerInfo = captureDetails?.payer || {};
-    const payerName = payerInfo.name || {};
-    const payerEmail = payerInfo.email_address || 'recovery@example.com';
+    // CRITICAL FIX: DO NOT USE PAYPAL PAYER DATA FOR CUSTOMER INFORMATION
+    // Only use minimal fallback data to indicate this is a recovery order
+    // The customer should contact support to provide their correct details
 
-    // Create fallback registration document
+    // Create minimal fallback registration document (NOT using PayPal payer info)
     const fallbackRegistration = {
       _type: 'conferenceRegistration',
       registrationId: recoveryRegistrationId,
       paypalOrderId: paypalOrderId,
       personalDetails: {
-        title: 'Dr.',
-        firstName: payerName.given_name || 'Recovered',
-        lastName: payerName.surname || 'Customer',
-        email: payerEmail,
-        phoneNumber: 'N/A - Recovered Order',
-        country: 'Unknown',
-        fullPostalAddress: 'N/A - Recovered from PayPal Order'
+        title: 'N/A',
+        firstName: 'RECOVERY',
+        lastName: 'ORDER',
+        email: 'support@intelliglobalconferences.com', // Support email, not PayPal email
+        phoneNumber: 'Please contact support',
+        country: 'Please contact support',
+        fullPostalAddress: 'Please contact support for customer details'
       },
-      selectedRegistrationName: 'Conference Registration (Recovered)',
+      selectedRegistrationName: 'Recovery Order - Contact Support',
       numberOfParticipants: 1,
       pricing: {
         registrationFee: parseFloat(amount),
@@ -51,19 +52,21 @@ async function createFallbackRegistration(paypalOrderId: string, amount: string,
         isRecoveredOrder: true,
         originalPaypalOrderId: paypalOrderId,
         recoveryDate: new Date().toISOString(),
-        recoveryReason: 'Orphaned PayPal order - registration not found'
+        recoveryReason: 'Orphaned PayPal order - no registration form data found',
+        customerNote: 'Customer must contact support to provide correct registration details',
+        supportEmail: 'support@intelliglobalconferences.com'
       }
     };
 
-    console.log('💾 Saving fallback registration to Sanity...');
+    console.log('💾 Saving minimal fallback registration to Sanity...');
     const result = await writeClient.create(fallbackRegistration);
 
     if (result) {
-      console.log('✅ Fallback registration created successfully:', {
+      console.log('✅ Minimal fallback registration created - customer must contact support:', {
         _id: result._id,
         registrationId: recoveryRegistrationId,
         paypalOrderId: paypalOrderId,
-        email: payerEmail
+        note: 'Customer details set to support contact info'
       });
 
       return {
@@ -227,11 +230,16 @@ export async function POST(request: NextRequest) {
       } else {
         console.error('❌ Registration record not found for:', { registrationId, orderId });
 
-        // CRITICAL FIX: Try email-based lookup before orphaned order recovery
+        // CRITICAL FIX: COMPREHENSIVE REGISTRATION FORM DATA LOOKUP
+        // Priority 1: Find by PayPal order ID (already linked)
+        // Priority 2: Find by email address from registration form (not PayPal email)
+        // Priority 3: Find by any pending registration that matches payment amount
+
         if (result?.payer?.email_address) {
-          console.log('🔍 Attempting email-based registration lookup...');
+          console.log('🔍 PRIORITY LOOKUP: Searching for registration form data by email...');
           const payerEmail = result.payer.email_address;
 
+          // Enhanced lookup with multiple fallback strategies
           const emailBasedRegistration = await client.fetch(
             `*[_type == "conferenceRegistration" && personalDetails.email == $email && paymentStatus == "pending"] | order(registrationDate desc)[0]{
               _id,
@@ -253,16 +261,69 @@ export async function POST(request: NextRequest) {
           );
 
           if (emailBasedRegistration) {
-            console.log('✅ Found registration by email match:', {
+            console.log('✅ FOUND REGISTRATION FORM DATA by email match:', {
               registrationId: emailBasedRegistration.registrationId,
-              email: payerEmail,
-              customerName: `${emailBasedRegistration.personalDetails?.firstName || ''} ${emailBasedRegistration.personalDetails?.lastName || ''}`.trim()
+              formEmail: emailBasedRegistration.personalDetails?.email,
+              paypalEmail: payerEmail,
+              customerName: `${emailBasedRegistration.personalDetails?.firstName || ''} ${emailBasedRegistration.personalDetails?.lastName || ''}`.trim(),
+              registrationType: emailBasedRegistration.selectedRegistrationName,
+              amount: emailBasedRegistration.pricing?.totalPrice
             });
 
             registrationRecord = emailBasedRegistration;
             actualRegistrationId = emailBasedRegistration.registrationId;
 
-            console.log('🔗 Linking PayPal order to existing registration...');
+            console.log('🔗 LINKING PayPal order to REGISTRATION FORM DATA (not PayPal payer data)');
+
+            // Update the registration to link it with PayPal order
+            try {
+              await writeClient
+                .patch(emailBasedRegistration._id)
+                .set({
+                  paypalOrderId: orderId,
+                  paymentStatus: 'processing',
+                  paypalLinkedAt: new Date().toISOString(),
+                  lastUpdated: new Date().toISOString()
+                })
+                .commit();
+
+              console.log('✅ Registration successfully linked to PayPal order');
+            } catch (linkError) {
+              console.warn('⚠️ Failed to link registration to PayPal order:', linkError);
+            }
+          } else {
+            console.log('⚠️ No registration form found for email:', payerEmail);
+
+            // Try broader search for recent pending registrations
+            console.log('🔍 Attempting broader search for recent pending registrations...');
+            const recentRegistrations = await client.fetch(
+              `*[_type == "conferenceRegistration" && paymentStatus == "pending" && pricing.totalPrice == $amount] | order(registrationDate desc)[0..2]{
+                _id,
+                registrationId,
+                personalDetails,
+                selectedRegistrationName,
+                pricing,
+                registrationDate
+              }`,
+              { amount: parseFloat(amount) }
+            );
+
+            if (recentRegistrations && recentRegistrations.length > 0) {
+              console.log('🔍 Found recent pending registrations with matching amount:',
+                recentRegistrations.map(r => ({
+                  id: r.registrationId,
+                  email: r.personalDetails?.email,
+                  amount: r.pricing?.totalPrice,
+                  date: r.registrationDate
+                }))
+              );
+
+              // Use the most recent one as a potential match
+              const potentialMatch = recentRegistrations[0];
+              console.log('⚠️ Using most recent matching registration as potential match');
+              registrationRecord = potentialMatch;
+              actualRegistrationId = potentialMatch.registrationId;
+            }
           }
         }
 

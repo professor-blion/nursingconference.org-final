@@ -110,18 +110,19 @@ export default function RegistrationSuccessPage() {
         } catch (error) {
           console.error('❌ Error fetching registration details:', error);
 
-          // CRITICAL FIX: Create comprehensive fallback data from URL parameters
+          // CRITICAL FIX: REGISTRATION FORM DATA PRIORITY - NEVER USE PAYPAL PAYER DATA
+          const isRecoveryOrder = registrationId?.startsWith('RECOVERY-');
           const fallbackDetails = {
             registrationId: registrationId,
             paypalOrderId: orderId,
             personalDetails: {
-              title: 'Dr.',
-              firstName: registrationId?.startsWith('RECOVERY-') ? 'Recovered' : 'Valued',
-              lastName: registrationId?.startsWith('RECOVERY-') ? 'Customer' : 'Customer',
-              email: registrationId?.startsWith('RECOVERY-') ? 'recovery@example.com' : 'customer@example.com',
-              phoneNumber: registrationId?.startsWith('RECOVERY-') ? 'N/A - Recovered Order' : '+1-XXX-XXX-XXXX',
-              country: 'United States',
-              fullPostalAddress: registrationId?.startsWith('RECOVERY-') ? 'N/A - Recovered from PayPal Order' : '123 Main Street, City, State 12345'
+              title: isRecoveryOrder ? 'N/A' : 'Dr.',
+              firstName: isRecoveryOrder ? 'RECOVERY' : 'Valued',
+              lastName: isRecoveryOrder ? 'ORDER' : 'Customer',
+              email: isRecoveryOrder ? 'support@intelliglobalconferences.com' : 'customer@example.com',
+              phoneNumber: isRecoveryOrder ? 'Contact Support' : 'Please contact support',
+              country: isRecoveryOrder ? 'Contact Support' : 'Please contact support',
+              fullPostalAddress: isRecoveryOrder ? 'Please contact support@intelliglobalconferences.com for customer details' : 'Please contact support@intelliglobalconferences.com'
             },
             selectedRegistrationName: registrationId?.startsWith('RECOVERY-') ? 'Conference Registration (Recovered)' : 'Conference Registration',
             sponsorType: null,
