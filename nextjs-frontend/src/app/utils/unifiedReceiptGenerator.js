@@ -175,7 +175,7 @@ async function generateBlueHeaderReceiptPDF(paymentData, registrationData, recei
     ['Phone:', getPhone(registrationData)],
     ['Country:', getCountry(registrationData)],
     ['Address:', getAddress(registrationData)],
-    ['Registration Type:', registrationData.registrationType || registrationData.selectedType?.name || 'N/A'],
+    ['Registration Type:', getRegistrationType(registrationData)],
     ['Number of Participants:', String(registrationData.numberOfParticipants || '1')]
   ];
 
@@ -240,12 +240,28 @@ function addInfoFields(doc, fields, yPos, colors, layout) {
 }
 
 function getFullName(registrationData) {
+  // Check for pre-built fullName
   if (registrationData.fullName) return registrationData.fullName;
+
+  // Build from personalDetails
   if (registrationData.personalDetails) {
     const { title, firstName, lastName } = registrationData.personalDetails;
-    return `${title || ''} ${firstName || ''} ${lastName || ''}`.trim();
+    if (firstName && lastName) {
+      return `${title || ''} ${firstName} ${lastName}`.trim();
+    }
+    return firstName || lastName || 'N/A';
   }
-  return 'N/A';
+
+  // Fallback to direct properties
+  const firstName = registrationData.firstName;
+  const lastName = registrationData.lastName;
+  const title = registrationData.title;
+
+  if (firstName && lastName) {
+    return `${title || ''} ${firstName} ${lastName}`.trim();
+  }
+
+  return firstName || lastName || 'N/A';
 }
 
 function getAddress(registrationData) {
@@ -273,6 +289,15 @@ function getEmail(registrationData) {
   if (registrationData.email) return registrationData.email;
   if (registrationData.personalDetails?.email) return registrationData.personalDetails.email;
   return 'N/A';
+}
+
+function getRegistrationType(registrationData) {
+  // Check multiple possible fields for registration type
+  if (registrationData.registrationType) return registrationData.registrationType;
+  if (registrationData.selectedRegistrationName) return registrationData.selectedRegistrationName;
+  if (registrationData.selectedType?.name) return registrationData.selectedType.name;
+  if (registrationData.sponsorType) return `${registrationData.sponsorType} Sponsorship Registration`;
+  return 'Conference Registration';
 }
 
 function formatDate(dateString) {

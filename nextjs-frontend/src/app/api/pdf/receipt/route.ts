@@ -184,18 +184,21 @@ export async function POST(request: NextRequest) {
         paymentMethod: 'PayPal'
       };
 
-      // Prepare registration data
+      // CRITICAL FIX: Prepare registration data with proper structure for PDF generation
       const unifiedRegistrationData = {
         registrationId: registrationDetails.registrationId,
         _id: registrationDetails._id,
+        // Use personalDetails structure directly for PDF helper functions
+        personalDetails: registrationDetails.personalDetails,
+        // Build full name with title
         fullName: registrationDetails.personalDetails?.firstName && registrationDetails.personalDetails?.lastName
-          ? `${registrationDetails.personalDetails.firstName} ${registrationDetails.personalDetails.lastName}`
+          ? `${registrationDetails.personalDetails.title || ''} ${registrationDetails.personalDetails.firstName} ${registrationDetails.personalDetails.lastName}`.trim()
           : 'Valued Customer',
         email: registrationDetails.personalDetails?.email || 'customer@example.com',
         phoneNumber: registrationDetails.personalDetails?.phoneNumber || 'N/A',
         country: registrationDetails.personalDetails?.country || 'N/A',
         address: registrationDetails.personalDetails?.fullPostalAddress || 'N/A',
-        registrationType: registrationDetails.selectedRegistrationName || 'Conference Registration',
+        registrationType: registrationDetails.selectedRegistrationName || registrationDetails.sponsorType || 'Conference Registration',
         sponsorType: registrationDetails.sponsorType,
         accommodationType: registrationDetails.accommodationType,
         accommodationNights: registrationDetails.accommodationNights,
