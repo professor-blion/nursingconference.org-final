@@ -1303,5 +1303,7 @@ module.exports = {
   getEmailConfig,
   generateReceiptPDF,
   generateUnifiedReceiptPDF, // NEW: Unified PDF generation
-  getProductionEmailConfig // NEW: Production email config
+  getProductionEmailConfig, // NEW: Production email config
+  uploadPDFToSanity, // CRITICAL FIX: Export PDF upload function
+  updateRegistrationWithPDF // CRITICAL FIX: Export PDF update function
 };

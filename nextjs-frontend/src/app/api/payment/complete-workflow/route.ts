@@ -149,14 +149,54 @@ export async function POST(request: NextRequest) {
       console.error('❌ PDF generation failed:', pdfError);
     }
     
-    // Step 4: Send email with PDF attachment (if enabled)
+    // Step 4: Upload PDF to Sanity CMS (CRITICAL FIX)
+    let pdfUploaded = false;
+    let pdfAssetId = null;
+    let pdfUploadError = null;
+
+    if (pdfBuffer) {
+      console.log('📤 Step 4: Uploading PDF to Sanity CMS...');
+
+      try {
+        // Import PDF upload functions
+        const { uploadPDFToSanity, updateRegistrationWithPDF } = require('@/app/utils/paymentReceiptEmailer');
+
+        const filename = `receipt_${registrationId}_${paymentData.transactionId}_${Date.now()}.pdf`;
+        console.log(`📤 Uploading PDF: ${filename}`);
+
+        const pdfAsset = await uploadPDFToSanity(pdfBuffer, filename);
+
+        if (pdfAsset) {
+          console.log(`✅ PDF uploaded successfully: ${pdfAsset._id}`);
+
+          const updateSuccess = await updateRegistrationWithPDF(registration._id, pdfAsset);
+          pdfUploaded = updateSuccess;
+          pdfAssetId = pdfAsset._id;
+
+          if (updateSuccess) {
+            console.log(`✅ PDF receipt stored in Sanity for registration: ${registration._id}`);
+          } else {
+            pdfUploadError = 'Failed to link PDF to registration';
+            console.error(`❌ Failed to link PDF to registration: ${registration._id}`);
+          }
+        } else {
+          pdfUploadError = 'PDF upload to Sanity failed';
+          console.error('❌ PDF upload to Sanity failed');
+        }
+      } catch (error) {
+        pdfUploadError = error instanceof Error ? error.message : 'Unknown PDF upload error';
+        console.error('❌ PDF upload error:', error);
+      }
+    }
+
+    // Step 5: Send email with PDF attachment (if enabled)
     let emailSent = false;
     let emailError = null;
     let messageId = null;
-    
+
     if (autoSendEmail && pdfBuffer) {
-      console.log('📧 Step 4: Sending email with PDF receipt...');
-      
+      console.log('📧 Step 5: Sending email with PDF receipt...');
+
       try {
         const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/email/send-receipt`, {
           method: 'POST',
@@ -173,7 +213,7 @@ export async function POST(request: NextRequest) {
             testEmail: customerEmail // Use customer email if provided
           }),
         });
-        
+
         if (emailResponse.ok) {
           const emailResult = await emailResponse.json();
           if (emailResult.success) {
@@ -194,8 +234,8 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Step 5: Update registration with email and PDF status
-    console.log('📊 Step 5: Updating registration with workflow results...');
+    // Step 6: Update registration with email and PDF status
+    console.log('📊 Step 6: Updating registration with workflow results...');
     await writeClient
       .patch(registration._id)
       .set({
@@ -205,6 +245,9 @@ export async function POST(request: NextRequest) {
         receiptEmailError: emailError,
         pdfReceiptGenerated: pdfGenerated,
         pdfReceiptSize: pdfSize,
+        pdfReceiptUploaded: pdfUploaded,
+        pdfReceiptAssetId: pdfAssetId,
+        pdfUploadError: pdfUploadError,
         workflowCompletedAt: new Date().toISOString(),
         workflowStatus: 'completed'
       })
@@ -212,7 +255,7 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Registration updated with workflow results');
     
-    // Step 6: Prepare success response
+    // Step 7: Prepare success response
     const workflowResult = {
       success: true,
       message: 'Payment workflow completed successfully',
@@ -225,9 +268,13 @@ export async function POST(request: NextRequest) {
         currency: paymentData.currency,
         pdfGenerated,
         pdfSize,
+        pdfUploaded,
+        pdfAssetId,
+        pdfUploadError,
         emailSent,
         emailRecipient: customerEmail || registration.personalDetails?.email,
         messageId,
+        emailError,
         workflowCompletedAt: new Date().toISOString(),
         registrationUpdated: true,
         sanityRecordId: registration._id

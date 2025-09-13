@@ -383,7 +383,7 @@ export async function POST(request: NextRequest) {
     // Trigger complete payment workflow (non-blocking) with FIXED base URL
     setImmediate(async () => {
       try {
-        console.log('🚀 Triggering complete payment workflow for registration:', actualRegistrationId);
+        console.log('📧 Triggering email receipt with PDF storage for registration:', actualRegistrationId);
 
         // CRITICAL FIX: Use proper base URL for production
         const baseUrl = process.env.VERCEL_URL
@@ -392,39 +392,43 @@ export async function POST(request: NextRequest) {
           ? process.env.NEXT_PUBLIC_BASE_URL
           : 'http://localhost:3000';
 
-        console.log('🌐 Using base URL for workflow:', baseUrl);
+        console.log('🌐 Using base URL for email API:', baseUrl);
 
-        const workflowResponse = await fetch(`${baseUrl}/api/payment/complete-workflow`, {
+        // CRITICAL FIX: Use email API directly since it works perfectly for PDF generation and storage
+        const emailResponse = await fetch(`${baseUrl}/api/email/send-receipt`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             registrationId: actualRegistrationId, // Use the actual registration ID
-            paymentData: {
-              transactionId: transactionId || capture?.id || 'N/A',
-              orderId: orderId || result.id || 'N/A',
-              amount: amount || capture?.amount?.value || '0',
-              currency: currency || capture?.amount?.currency_code || 'USD',
-              capturedAt: new Date().toISOString(),
-              paymentMethod: 'PayPal'
-            },
-            customerEmail: registrationRecord?.personalDetails?.email,
-            autoSendEmail: true
+            transactionId: transactionId || capture?.id || 'N/A',
+            orderId: orderId || result.id || 'N/A',
+            amount: amount || capture?.amount?.value || '0',
+            currency: currency || capture?.amount?.currency_code || 'USD',
+            capturedAt: new Date().toISOString(),
+            testEmail: registrationRecord?.personalDetails?.email // Send to customer email
           }),
         });
 
-        if (workflowResponse.ok) {
-          const workflowResult = await workflowResponse.json();
-          console.log('✅ Complete payment workflow executed successfully:', workflowResult.details);
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log('✅ Email receipt with PDF storage executed successfully:', {
+            success: emailResult.success,
+            recipient: emailResult.details?.recipient,
+            pdfGenerated: emailResult.details?.pdfGenerated,
+            pdfUploaded: emailResult.details?.pdfUploaded,
+            pdfAssetId: emailResult.details?.pdfAssetId,
+            messageId: emailResult.details?.messageId
+          });
         } else {
-          const workflowError = await workflowResponse.json();
-          console.error('❌ Payment workflow failed:', workflowError);
+          const emailError = await emailResponse.json();
+          console.error('❌ Email receipt with PDF storage failed:', emailError);
         }
 
-      } catch (workflowError) {
-        console.error('❌ Error triggering payment workflow:', workflowError);
-        // Workflow failure doesn't affect payment success
+      } catch (emailError) {
+        console.error('❌ Error triggering email receipt with PDF storage:', emailError);
+        // Email failure doesn't affect payment success
       }
     });
 
