@@ -380,57 +380,72 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, but log the error
     }
 
-    // Trigger complete payment workflow (non-blocking) with FIXED base URL
-    setImmediate(async () => {
-      try {
-        console.log('📧 Triggering email receipt with PDF storage for registration:', actualRegistrationId);
+    // CRITICAL FIX: Call email API directly instead of using setImmediate() for production reliability
+    try {
+      console.log('📧 Sending email receipt with PDF storage for registration:', actualRegistrationId);
 
-        // CRITICAL FIX: Use proper base URL for production
-        const baseUrl = process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : process.env.NEXT_PUBLIC_BASE_URL
-          ? process.env.NEXT_PUBLIC_BASE_URL
-          : 'http://localhost:3000';
+      // CRITICAL FIX: Use direct function call instead of HTTP fetch to avoid base URL issues
+      console.log('🔧 Using direct function call for email and PDF processing...');
 
-        console.log('🌐 Using base URL for email API:', baseUrl);
+      // Import the email function directly
+      const { sendPaymentReceiptEmailWithRealData } = await import('../../../utils/paymentReceiptEmailer');
 
-        // CRITICAL FIX: Use email API directly since it works perfectly for PDF generation and storage
-        const emailResponse = await fetch(`${baseUrl}/api/email/send-receipt`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            registrationId: actualRegistrationId, // Use the actual registration ID
-            transactionId: transactionId || capture?.id || 'N/A',
-            orderId: orderId || result.id || 'N/A',
-            amount: amount || capture?.amount?.value || '0',
-            currency: currency || capture?.amount?.currency_code || 'USD',
-            capturedAt: new Date().toISOString(),
-            testEmail: registrationRecord?.personalDetails?.email // Send to customer email
-          }),
+      // Prepare payment data for email system
+      const emailPaymentData = {
+        transactionId: transactionId || capture?.id || 'N/A',
+        orderId: orderId || result.id || 'N/A',
+        amount: amount || capture?.amount?.value || '0',
+        currency: currency || capture?.amount?.currency_code || 'USD',
+        capturedAt: new Date().toISOString(),
+        paymentMethod: 'PayPal',
+        status: 'completed'
+      };
+
+      // Prepare registration data (use the existing registration record)
+      const emailRegistrationData = {
+        _id: registrationRecord._id,
+        registrationId: actualRegistrationId,
+        personalDetails: registrationRecord.personalDetails,
+        selectedRegistrationName: registrationRecord.selectedRegistrationName,
+        sponsorType: registrationRecord.sponsorType,
+        accommodationType: registrationRecord.accommodationType,
+        accommodationNights: registrationRecord.accommodationNights,
+        numberOfParticipants: registrationRecord.numberOfParticipants,
+        pricing: registrationRecord.pricing
+      };
+
+      // Send email with PDF generation and storage
+      const emailResult = await sendPaymentReceiptEmailWithRealData(
+        emailPaymentData,
+        emailRegistrationData,
+        registrationRecord.personalDetails?.email
+      );
+
+      if (emailResult.success) {
+        console.log('✅ Email receipt with PDF storage executed successfully:', {
+          success: emailResult.success,
+          recipient: registrationRecord.personalDetails?.email,
+          pdfGenerated: emailResult.pdfGenerated,
+          pdfSize: emailResult.pdfSize,
+          pdfUploaded: emailResult.pdfUploaded,
+          pdfAssetId: emailResult.pdfAssetId,
+          messageId: emailResult.messageId
         });
-
-        if (emailResponse.ok) {
-          const emailResult = await emailResponse.json();
-          console.log('✅ Email receipt with PDF storage executed successfully:', {
-            success: emailResult.success,
-            recipient: emailResult.details?.recipient,
-            pdfGenerated: emailResult.details?.pdfGenerated,
-            pdfUploaded: emailResult.details?.pdfUploaded,
-            pdfAssetId: emailResult.details?.pdfAssetId,
-            messageId: emailResult.details?.messageId
-          });
-        } else {
-          const emailError = await emailResponse.json();
-          console.error('❌ Email receipt with PDF storage failed:', emailError);
-        }
-
-      } catch (emailError) {
-        console.error('❌ Error triggering email receipt with PDF storage:', emailError);
-        // Email failure doesn't affect payment success
+      } else {
+        console.error('❌ Email receipt with PDF storage failed:', emailResult.error);
       }
-    });
+
+    } catch (emailError) {
+      console.error('❌ Error sending email receipt with PDF storage:', {
+        error: emailError.message,
+        stack: emailError.stack,
+        registrationId: actualRegistrationId,
+        customerEmail: registrationRecord?.personalDetails?.email,
+        transactionId: transactionId,
+        orderId: orderId
+      });
+      // Email failure doesn't affect payment success - log but continue
+    }
 
     // CRITICAL FIX: Return success URL for proper redirect
     const successUrl = `/registration/success?` +
